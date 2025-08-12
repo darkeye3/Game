@@ -1,0 +1,247 @@
+{
+  "Version": 1,
+  "WorkspaceRootPath": "C:\\Work\\DarkistCopy\\",
+  "Documents": [
+    {
+      "AbsoluteMoniker": "D:0:0:{5C1E3F13-1490-AA30-FE97-EBD1FD00AE77}|Assembly-CSharp.csproj|c:\\work\\darkistcopy\\assets\\_scripts\\ui\\ui_closebutton.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{5C1E3F13-1490-AA30-FE97-EBD1FD00AE77}|Assembly-CSharp.csproj|solutionrelative:assets\\_scripts\\ui\\ui_closebutton.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{5C1E3F13-1490-AA30-FE97-EBD1FD00AE77}|Assembly-CSharp.csproj|c:\\work\\darkistcopy\\assets\\_scripts\\character\\character.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{5C1E3F13-1490-AA30-FE97-EBD1FD00AE77}|Assembly-CSharp.csproj|solutionrelative:assets\\_scripts\\character\\character.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{5C1E3F13-1490-AA30-FE97-EBD1FD00AE77}|Assembly-CSharp.csproj|C:\\Work\\DarkistCopy\\assets\\_scripts\\character\\vestal.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{5C1E3F13-1490-AA30-FE97-EBD1FD00AE77}|Assembly-CSharp.csproj|solutionrelative:assets\\_scripts\\character\\vestal.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{5C1E3F13-1490-AA30-FE97-EBD1FD00AE77}|Assembly-CSharp.csproj|C:\\Work\\DarkistCopy\\assets\\_scripts\\character\\crusader.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{5C1E3F13-1490-AA30-FE97-EBD1FD00AE77}|Assembly-CSharp.csproj|solutionrelative:assets\\_scripts\\character\\crusader.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{5C1E3F13-1490-AA30-FE97-EBD1FD00AE77}|Assembly-CSharp.csproj|C:\\Work\\DarkistCopy\\assets\\_scripts\\handler\\nomadwagonhandler.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{5C1E3F13-1490-AA30-FE97-EBD1FD00AE77}|Assembly-CSharp.csproj|solutionrelative:assets\\_scripts\\handler\\nomadwagonhandler.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{5C1E3F13-1490-AA30-FE97-EBD1FD00AE77}|Assembly-CSharp.csproj|C:\\Work\\DarkistCopy\\assets\\_scripts\\character\\plaguedoctor.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{5C1E3F13-1490-AA30-FE97-EBD1FD00AE77}|Assembly-CSharp.csproj|solutionrelative:assets\\_scripts\\character\\plaguedoctor.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{3D6C476F-3BF9-5E97-25C0-E8CAF9F7D17E}|Assembly-CSharp-Editor.csproj|C:\\Work\\DarkistCopy\\assets\\editor\\charactereditor.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{3D6C476F-3BF9-5E97-25C0-E8CAF9F7D17E}|Assembly-CSharp-Editor.csproj|solutionrelative:assets\\editor\\charactereditor.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{5C1E3F13-1490-AA30-FE97-EBD1FD00AE77}|Assembly-CSharp.csproj|C:\\Work\\DarkistCopy\\assets\\_scripts\\character\\highwayman.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{5C1E3F13-1490-AA30-FE97-EBD1FD00AE77}|Assembly-CSharp.csproj|solutionrelative:assets\\_scripts\\character\\highwayman.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{5C1E3F13-1490-AA30-FE97-EBD1FD00AE77}|Assembly-CSharp.csproj|C:\\Work\\DarkistCopy\\assets\\_scripts\\manager\\gamemanager.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{5C1E3F13-1490-AA30-FE97-EBD1FD00AE77}|Assembly-CSharp.csproj|solutionrelative:assets\\_scripts\\manager\\gamemanager.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{5C1E3F13-1490-AA30-FE97-EBD1FD00AE77}|Assembly-CSharp.csproj|C:\\Work\\DarkistCopy\\assets\\_scripts\\ui\\ui_heroinventory.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{5C1E3F13-1490-AA30-FE97-EBD1FD00AE77}|Assembly-CSharp.csproj|solutionrelative:assets\\_scripts\\ui\\ui_heroinventory.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{5C1E3F13-1490-AA30-FE97-EBD1FD00AE77}|Assembly-CSharp.csproj|C:\\Work\\DarkistCopy\\assets\\_scripts\\utils\\addhero.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{5C1E3F13-1490-AA30-FE97-EBD1FD00AE77}|Assembly-CSharp.csproj|solutionrelative:assets\\_scripts\\utils\\addhero.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{5C1E3F13-1490-AA30-FE97-EBD1FD00AE77}|Assembly-CSharp.csproj|C:\\Work\\DarkistCopy\\assets\\_scripts\\ui\\ui_wagonpopup.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{5C1E3F13-1490-AA30-FE97-EBD1FD00AE77}|Assembly-CSharp.csproj|solutionrelative:assets\\_scripts\\ui\\ui_wagonpopup.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{5C1E3F13-1490-AA30-FE97-EBD1FD00AE77}|Assembly-CSharp.csproj|C:\\Work\\DarkistCopy\\assets\\_scripts\\manager\\usermanager.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{5C1E3F13-1490-AA30-FE97-EBD1FD00AE77}|Assembly-CSharp.csproj|solutionrelative:assets\\_scripts\\manager\\usermanager.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{5C1E3F13-1490-AA30-FE97-EBD1FD00AE77}|Assembly-CSharp.csproj|C:\\Work\\DarkistCopy\\assets\\_scripts\\manager\\uimanager.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{5C1E3F13-1490-AA30-FE97-EBD1FD00AE77}|Assembly-CSharp.csproj|solutionrelative:assets\\_scripts\\manager\\uimanager.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    }
+  ],
+  "DocumentGroupContainers": [
+    {
+      "Orientation": 0,
+      "VerticalTabListWidth": 256,
+      "DocumentGroups": [
+        {
+          "DockedWidth": 200,
+          "SelectedChildIndex": 1,
+          "Children": [
+            {
+              "$type": "Document",
+              "DocumentIndex": 4,
+              "Title": "NomadWagonHandler.cs",
+              "DocumentMoniker": "C:\\Work\\DarkistCopy\\Assets\\_Scripts\\Handler\\NomadWagonHandler.cs",
+              "RelativeDocumentMoniker": "Assets\\_Scripts\\Handler\\NomadWagonHandler.cs",
+              "ToolTip": "C:\\Work\\DarkistCopy\\Assets\\_Scripts\\Handler\\NomadWagonHandler.cs",
+              "RelativeToolTip": "Assets\\_Scripts\\Handler\\NomadWagonHandler.cs",
+              "ViewState": "AQIAADMAAAAAAAAAAAAUwEkAAAAgAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-04-26T08:51:14.657Z",
+              "IsPinned": true
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "UI_CloseButton.cs",
+              "DocumentMoniker": "C:\\Work\\DarkistCopy\\Assets\\_Scripts\\UI\\UI_CloseButton.cs",
+              "RelativeDocumentMoniker": "Assets\\_Scripts\\UI\\UI_CloseButton.cs",
+              "ToolTip": "C:\\Work\\DarkistCopy\\Assets\\_Scripts\\UI\\UI_CloseButton.cs",
+              "RelativeToolTip": "Assets\\_Scripts\\UI\\UI_CloseButton.cs",
+              "ViewState": "AQIAAAAAAAAAAAAAAAAAABAAAAAAAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-07-23T06:55:03.375Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 5,
+              "Title": "PlagueDoctor.cs",
+              "DocumentMoniker": "C:\\Work\\DarkistCopy\\Assets\\_Scripts\\Character\\PlagueDoctor.cs",
+              "RelativeDocumentMoniker": "Assets\\_Scripts\\Character\\PlagueDoctor.cs",
+              "ToolTip": "C:\\Work\\DarkistCopy\\Assets\\_Scripts\\Character\\PlagueDoctor.cs",
+              "RelativeToolTip": "Assets\\_Scripts\\Character\\PlagueDoctor.cs",
+              "ViewState": "AQIAAAAAAAAAAAAAAADwvwkAAAAVAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-05-15T08:48:35.957Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "Vestal.cs",
+              "DocumentMoniker": "C:\\Work\\DarkistCopy\\Assets\\_Scripts\\Character\\Vestal.cs",
+              "RelativeDocumentMoniker": "Assets\\_Scripts\\Character\\Vestal.cs",
+              "ToolTip": "C:\\Work\\DarkistCopy\\Assets\\_Scripts\\Character\\Vestal.cs",
+              "RelativeToolTip": "Assets\\_Scripts\\Character\\Vestal.cs",
+              "ViewState": "AQIAAAAAAAAAAAAAAAAAAAQAAAAfAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-05-15T08:45:33.415Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 6,
+              "Title": "CharacterEditor.cs",
+              "DocumentMoniker": "C:\\Work\\DarkistCopy\\Assets\\Editor\\CharacterEditor.cs",
+              "RelativeDocumentMoniker": "Assets\\Editor\\CharacterEditor.cs",
+              "ToolTip": "C:\\Work\\DarkistCopy\\Assets\\Editor\\CharacterEditor.cs",
+              "RelativeToolTip": "Assets\\Editor\\CharacterEditor.cs",
+              "ViewState": "AQIAAAMAAAAAAAAAAAAAAAcAAAAXAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-05-13T08:45:33.989Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 11,
+              "Title": "UI_WagonPopup.cs",
+              "DocumentMoniker": "C:\\Work\\DarkistCopy\\Assets\\_Scripts\\UI\\UI_WagonPopup.cs",
+              "RelativeDocumentMoniker": "Assets\\_Scripts\\UI\\UI_WagonPopup.cs",
+              "ToolTip": "C:\\Work\\DarkistCopy\\Assets\\_Scripts\\UI\\UI_WagonPopup.cs",
+              "RelativeToolTip": "Assets\\_Scripts\\UI\\UI_WagonPopup.cs",
+              "ViewState": "AQIAAAMAAAAAAAAAAAAAAAkAAAASAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-04-25T04:32:35.083Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 10,
+              "Title": "AddHero.cs",
+              "DocumentMoniker": "C:\\Work\\DarkistCopy\\Assets\\_Scripts\\Utils\\AddHero.cs",
+              "RelativeDocumentMoniker": "Assets\\_Scripts\\Utils\\AddHero.cs",
+              "ToolTip": "C:\\Work\\DarkistCopy\\Assets\\_Scripts\\Utils\\AddHero.cs",
+              "RelativeToolTip": "Assets\\_Scripts\\Utils\\AddHero.cs",
+              "ViewState": "AQIAAA8AAAAAAAAAAAAIwBMAAAAoAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-04-25T04:57:03.551Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "Character.cs",
+              "DocumentMoniker": "C:\\Work\\DarkistCopy\\Assets\\_Scripts\\Character\\Character.cs",
+              "RelativeDocumentMoniker": "Assets\\_Scripts\\Character\\Character.cs",
+              "ToolTip": "C:\\Work\\DarkistCopy\\Assets\\_Scripts\\Character\\Character.cs",
+              "RelativeToolTip": "Assets\\_Scripts\\Character\\Character.cs",
+              "ViewState": "AQIAAAAAAAAAAAAAAAAAAAwAAAAaAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-04-25T04:48:10.273Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 7,
+              "Title": "Highwayman.cs",
+              "DocumentMoniker": "C:\\Work\\DarkistCopy\\Assets\\_Scripts\\Character\\Highwayman.cs",
+              "RelativeDocumentMoniker": "Assets\\_Scripts\\Character\\Highwayman.cs",
+              "ToolTip": "C:\\Work\\DarkistCopy\\Assets\\_Scripts\\Character\\Highwayman.cs",
+              "RelativeToolTip": "Assets\\_Scripts\\Character\\Highwayman.cs",
+              "ViewState": "AQIAAAQAAAAAAAAAAAA+wBMAAAAFAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-04-25T04:45:36.664Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 8,
+              "Title": "GameManager.cs",
+              "DocumentMoniker": "C:\\Work\\DarkistCopy\\Assets\\_Scripts\\Manager\\GameManager.cs",
+              "RelativeDocumentMoniker": "Assets\\_Scripts\\Manager\\GameManager.cs",
+              "ToolTip": "C:\\Work\\DarkistCopy\\Assets\\_Scripts\\Manager\\GameManager.cs",
+              "RelativeToolTip": "Assets\\_Scripts\\Manager\\GameManager.cs",
+              "ViewState": "AQIAAAMAAAAAAAAAAAAAACIAAAAFAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-04-25T04:21:14.349Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 9,
+              "Title": "UI_HeroInventory.cs",
+              "DocumentMoniker": "C:\\Work\\DarkistCopy\\Assets\\_Scripts\\UI\\UI_HeroInventory.cs",
+              "RelativeDocumentMoniker": "Assets\\_Scripts\\UI\\UI_HeroInventory.cs",
+              "ToolTip": "C:\\Work\\DarkistCopy\\Assets\\_Scripts\\UI\\UI_HeroInventory.cs",
+              "RelativeToolTip": "Assets\\_Scripts\\UI\\UI_HeroInventory.cs",
+              "ViewState": "AQIAAB8AAAAAAAAAAAAUwBkAAAAKAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-04-25T03:58:53.062Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 13,
+              "Title": "UIManager.cs",
+              "DocumentMoniker": "C:\\Work\\DarkistCopy\\Assets\\_Scripts\\Manager\\UIManager.cs",
+              "RelativeDocumentMoniker": "Assets\\_Scripts\\Manager\\UIManager.cs",
+              "ToolTip": "C:\\Work\\DarkistCopy\\Assets\\_Scripts\\Manager\\UIManager.cs",
+              "RelativeToolTip": "Assets\\_Scripts\\Manager\\UIManager.cs",
+              "ViewState": "AQIAAAAAAAAAAAAAAAAAAAgAAAAUAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-04-25T03:53:03.355Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 12,
+              "Title": "UserManager.cs",
+              "DocumentMoniker": "C:\\Work\\DarkistCopy\\Assets\\_Scripts\\Manager\\UserManager.cs",
+              "RelativeDocumentMoniker": "Assets\\_Scripts\\Manager\\UserManager.cs",
+              "ToolTip": "C:\\Work\\DarkistCopy\\Assets\\_Scripts\\Manager\\UserManager.cs",
+              "RelativeToolTip": "Assets\\_Scripts\\Manager\\UserManager.cs",
+              "ViewState": "AQIAABgAAAAAAAAAAAAowCsAAAAeAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-04-25T01:40:24.355Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
+              "Title": "Crusader.cs",
+              "DocumentMoniker": "C:\\Work\\DarkistCopy\\Assets\\_Scripts\\Character\\Crusader.cs",
+              "RelativeDocumentMoniker": "Assets\\_Scripts\\Character\\Crusader.cs",
+              "ToolTip": "C:\\Work\\DarkistCopy\\Assets\\_Scripts\\Character\\Crusader.cs",
+              "RelativeToolTip": "Assets\\_Scripts\\Character\\Crusader.cs",
+              "ViewState": "AQIAAAAAAAAAAAAAAAAAAAQAAAAfAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-04-25T01:34:10.978Z"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
