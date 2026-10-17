@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using Darkest.Domain.Combat;
 using Darkest.Domain.Combat.Events;
+using Darkest.Domain.Combat.Resolution;
 using Darkest.Domain.Content;
 using Darkest.Domain.Core;
 using Darkest.Domain.Stress;
@@ -29,7 +30,7 @@ namespace Darkest.Domain.Dungeon
         private readonly List<Hero> _fallen = new List<Hero>();
 
         public Expedition(Formation party, DungeonMap map, Inventory inventory, ExpeditionRules rules,
-            StressService stress, IContentCatalog catalog, IRandom random, IEventBus events, IGameLogger logger)
+            CombatRules combatRules, StressService stress, IContentCatalog catalog, IRandom random, IEventBus events, IGameLogger logger)
         {
             Party = Guard.NotNull(party, nameof(party));
             Guard.That(!party.IsEmpty && party.Team == Team.Heroes, "영웅 파티가 비어 있습니다.");
@@ -40,8 +41,9 @@ namespace Darkest.Domain.Dungeon
             _random = Guard.NotNull(random, nameof(random));
             _events = Guard.NotNull(events, nameof(events));
             _logger = logger ?? NullLogger.Instance;
-            _curioResolver = new CurioResolver(stress, random);
-            _corridor = new CorridorTravel(rules, stress, random, events, _logger);
+            var hazard = new PartyHazard(combatRules, stress, random);
+            _curioResolver = new CurioResolver(stress, hazard);
+            _corridor = new CorridorTravel(rules, stress, hazard, events, _logger);
             _camp = new Camp(rules, stress, events);
             _lightEffects = new LightEffects(rules);
             Light = new TorchLight(rules);

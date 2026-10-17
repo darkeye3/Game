@@ -1,4 +1,5 @@
 using Darkest.Domain.Combat;
+using Darkest.Domain.Combat.Resolution;
 using Darkest.Domain.Combat.Stats;
 using Darkest.Domain.Combat.Status;
 using Darkest.Domain.Core;
@@ -30,6 +31,40 @@ namespace Darkest.Tests
             Assert.That(inventory.Firewood, Is.EqualTo(0));
             Assert.That(inventory.Food, Is.EqualTo(0));
             Assert.That(light.Value, Is.EqualTo(40));
+        }
+
+        [Test]
+        public void Camp_NeverBrightensLight()
+        {
+            var rules = new ExpeditionRules { CampFoodPerHero = 1, LightAfterCamp = 50 };
+            var camp = new Camp(rules, TestKit.StressService(new ScriptedRandom()), new EventBus());
+            var light = new TorchLight(rules);
+            light.Change(20 - light.Value);
+
+            Assert.That(camp.TryMake(TestKit.Party(TestKit.Hero("a")), new Inventory(food: 1, torches: 0, firewood: 1), light), Is.Null);
+
+            Assert.That(light.Value, Is.EqualTo(20), "이미 LightAfterCamp보다 어두우면 그대로");
+        }
+
+        [Test]
+        public void PartyHazard_DeathsDoorAndAllyDeath_UseCombatStressRules()
+        {
+            var combat = new CombatRules { StressOnDeathsDoor = 15, StressOnAllyDeath = 20 };
+            var random = new ScriptedRandom();
+            var stress = TestKit.StressService(random);
+            var hazard = new PartyHazard(combat, stress, random);
+            var healthy = TestKit.Hero("healthy", TestKit.Stats(hp: 20));
+            var fragile = TestKit.Hero("fragile", TestKit.Stats(hp: 4));
+            var doomed = TestKit.Hero("doomed", TestKit.Stats(hp: 4, deathblow: 0));
+            doomed.ApplyDamage(4, random); // 이미 죽음의 문턱
+            var party = TestKit.Party(healthy, fragile, doomed);
+
+            hazard.DamageAll(party, 4);
+
+            Assert.That(fragile.IsAtDeathsDoor, Is.True);
+            Assert.That(doomed.IsDead, Is.True);
+            Assert.That(healthy.Stress.Current, Is.EqualTo(20), "동료 사망 +20");
+            Assert.That(fragile.Stress.Current, Is.EqualTo(15 + 20), "죽음의 문턱 +15, 동료 사망 +20");
         }
 
         [Test]

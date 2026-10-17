@@ -49,7 +49,8 @@ namespace Darkest.Domain.Combat.Commands
             bool anyCrit = false;
             for (int i = 0; i < _targets.Count; i++) anyCrit |= ResolveOn(context, _targets[i]);
 
-            if (anyCrit && Actor is Hero)
+            // 아군 사기 회복은 공격 치명타에만. 회복 스킬 치명타는 회복량 증가(1.5배)로 끝난다.
+            if (anyCrit && Actor is Hero && Skill.IsAttack)
                 context.Stress.ApplyToAll(context.Heroes.Members, -context.Rules.StressReliefOnHeroCrit);
 
             if (Skill.SelfMove != 0 && Actor.IsAlive) MoveSelf(context);

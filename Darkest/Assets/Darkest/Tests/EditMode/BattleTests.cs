@@ -4,6 +4,7 @@ using Darkest.Domain.Combat.AI;
 using Darkest.Domain.Combat.Commands;
 using Darkest.Domain.Combat.Events;
 using Darkest.Domain.Combat.Flow;
+using Darkest.Domain.Combat.Resolution;
 using Darkest.Domain.Combat.Skills;
 using Darkest.Domain.Combat.Status;
 using Darkest.Domain.Content;
@@ -42,6 +43,30 @@ namespace Darkest.Tests
             Assert.That(error, Is.Not.Null);
             Assert.That(battle.IsAwaitingHeroCommand, Is.True);
             Assert.That(battle.Context.History.Count, Is.EqualTo(0));
+        }
+
+        [Test]
+        public void HealCrit_DoesNotRelievePartyStress_ButAttackCritDoes()
+        {
+            var heal = new SkillDefinition("heal", "heal", RankMaskExtensions.Parse("1,2,3,4"), TargetSide.Ally,
+                RankMaskExtensions.Parse("1,2,3,4"), false, 100, 0, 0, 0, new ISkillEffect[] { new HealEffect(2, 2) });
+            var healer = TestKit.Hero("healer", TestKit.Stats(speed: 20, crit: 100), heal);
+            var ally = TestKit.Hero("ally");
+            var monster = TestKit.Monster("m", TestKit.Stats(hp: 50));
+            var rules = new CombatRules { StressReliefOnHeroCrit = 3 };
+            var battle = new BattleSession(TestKit.Party(healer, ally), TestKit.Party(monster), TestKit.Services(new ScriptedRandom(), rules: rules));
+            battle.Context.Stress.Apply(ally, 10);
+            battle.Start();
+
+            Assert.That(battle.Submit(new UseSkillCommand(healer, heal, ally)), Is.Null);
+            Assert.That(ally.Stress.Current, Is.EqualTo(10), "회복 치명타는 파티 스트레스를 줄이지 않는다");
+
+            var attacker = TestKit.Hero("attacker", TestKit.Stats(speed: 20, crit: 100));
+            var target = TestKit.Monster("t", TestKit.Stats(hp: 50));
+            var attackBattle = new BattleSession(TestKit.Party(attacker, ally), TestKit.Party(target), TestKit.Services(new ScriptedRandom(), rules: rules));
+            attackBattle.Start();
+            Assert.That(attackBattle.Submit(new UseSkillCommand(attacker, attacker.Skills[0], target)), Is.Null);
+            Assert.That(ally.Stress.Current, Is.EqualTo(7), "공격 치명타는 파티 스트레스 -3");
         }
 
         [Test]

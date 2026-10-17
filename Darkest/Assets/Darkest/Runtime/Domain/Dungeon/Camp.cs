@@ -13,7 +13,8 @@ namespace Darkest.Domain.Dungeon
     }
 
     /// <summary>
-    /// 야영 규칙: 장작 1개 + 인원수만큼 식량 → HP 회복, 스트레스 완화, 지속 피해 제거, 대신 빛이 줄어든다.
+    /// 야영 규칙: 장작 1개 + 인원수만큼 식량 → HP 회복, 스트레스 완화, 지속 피해 제거.
+    /// 빛은 LightAfterCamp까지만 낮아지고, 원래 더 어두웠다면 그대로 둔다(야영이 횃불 대용이 되지 않게).
     /// </summary>
     public sealed class Camp
     {
@@ -48,7 +49,7 @@ namespace Darkest.Domain.Dungeon
                 member.Statuses.Clear();
             }
             _stress.ApplyToAll(party.Members, -_rules.CampStressRelief);
-            light.Change(_rules.LightAfterCamp - light.Value);
+            if (light.Value > _rules.LightAfterCamp) light.Change(_rules.LightAfterCamp - light.Value);
 
             _events.Publish(new CampMade(healedTotal, _rules.CampStressRelief));
             return null;

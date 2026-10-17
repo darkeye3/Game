@@ -8,12 +8,12 @@ namespace Darkest.Domain.Dungeon
     public sealed class CurioResolver
     {
         private readonly StressService _stress;
-        private readonly IRandom _random;
+        private readonly PartyHazard _hazard;
 
-        public CurioResolver(StressService stress, IRandom random)
+        public CurioResolver(StressService stress, PartyHazard hazard)
         {
             _stress = Guard.NotNull(stress, nameof(stress));
-            _random = Guard.NotNull(random, nameof(random));
+            _hazard = Guard.NotNull(hazard, nameof(hazard));
         }
 
         public void Apply(CurioOutcome outcome, Formation party, Inventory inventory, TorchLight light)
@@ -29,7 +29,7 @@ namespace Darkest.Domain.Dungeon
                     _stress.ApplyToAll(party.Members, outcome.Amount);
                     break;
                 case CurioEffectKind.PartyDamage:
-                    for (int i = 0; i < party.Members.Count; i++) party.Members[i].ApplyDamage(outcome.Amount, _random);
+                    _hazard.DamageAll(party, outcome.Amount);
                     break;
                 case CurioEffectKind.PartyHeal:
                     for (int i = 0; i < party.Members.Count; i++) party.Members[i].Heal(outcome.Amount);

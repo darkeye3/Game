@@ -11,15 +11,15 @@ namespace Darkest.Domain.Dungeon
 
         private readonly ExpeditionRules _rules;
         private readonly StressService _stress;
-        private readonly IRandom _random;
+        private readonly PartyHazard _hazard;
         private readonly IEventBus _events;
         private readonly IGameLogger _logger;
 
-        public CorridorTravel(ExpeditionRules rules, StressService stress, IRandom random, IEventBus events, IGameLogger logger)
+        public CorridorTravel(ExpeditionRules rules, StressService stress, PartyHazard hazard, IEventBus events, IGameLogger logger)
         {
             _rules = Guard.NotNull(rules, nameof(rules));
             _stress = Guard.NotNull(stress, nameof(stress));
-            _random = Guard.NotNull(random, nameof(random));
+            _hazard = Guard.NotNull(hazard, nameof(hazard));
             _events = Guard.NotNull(events, nameof(events));
             _logger = logger ?? NullLogger.Instance;
         }
@@ -36,15 +36,27 @@ namespace Darkest.Domain.Dungeon
             if (_rules.HungerStepInterval > 0 && totalSteps % _rules.HungerStepInterval == 0) CheckHunger(party, inventory);
         }
 
+        /// <summary>살아 있는 인원수만큼 식량을 먹는다. 모자라면 하나도 먹지 않고 전원이 굶주린다.</summary>
         private void CheckHunger(Formation party, Inventory inventory)
         {
-            bool ate = inventory.TryConsumeFood();
+            int needed = CountAlive(party);
+            bool ate = inventory.TryConsumeFood(needed);
             _events.Publish(new HungerChecked(ate));
             if (ate) return;
 
-            _logger.Info(LogCategory, "식량 부족 — 파티가 굶주립니다.");
+            _logger.Info(LogCategory, "식량 부족(필요 " + needed + ", 보유 " + inventory.Food + ") — 파티가 굶주립니다.");
             _stress.ApplyToAll(party.Members, _rules.HungerStress);
-            for (int i = 0; i < party.Members.Count; i++) party.Members[i].ApplyDamage(_rules.HungerDamage, _random);
+            _hazard.DamageAll(party, _rules.HungerDamage);
+        }
+
+        private static int CountAlive(Formation party)
+        {
+            int count = 0;
+            for (int i = 0; i < party.Members.Count; i++)
+            {
+                if (party.Members[i].IsAlive) count++;
+            }
+            return count;
         }
     }
 }

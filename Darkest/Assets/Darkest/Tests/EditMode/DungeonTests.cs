@@ -77,7 +77,7 @@ namespace Darkest.Tests
         {
             var catalog = DefaultContent.Create();
             var party = TestKit.Party(TestKit.Hero("a"), TestKit.Hero("b"));
-            return new Expedition(party, map, inventory, rules, TestKit.StressService(random, events), catalog, random, events, NullLogger.Instance);
+            return new Expedition(party, map, inventory, rules, new Domain.Combat.Resolution.CombatRules(), TestKit.StressService(random, events), catalog, random, events, NullLogger.Instance);
         }
 
         private static DungeonMap TwoRoomMap(RoomType secondType, string encounterId = null, int gold = 0)
@@ -89,12 +89,12 @@ namespace Darkest.Tests
         }
 
         [Test]
-        public void Move_ConsumesLight_AndHungerEatsFood()
+        public void Move_ConsumesLight_AndHungerEatsOneFoodPerHero()
         {
             var rules = new ExpeditionRules { CorridorSteps = 4, HungerStepInterval = 4, LightDecayPerStep = 5 };
             var events = new EventBus();
             var hunger = TestKit.Collect<HungerChecked>(events);
-            var inventory = new Inventory(food: 1, torches: 0);
+            var inventory = new Inventory(food: 2, torches: 0);
             var expedition = CreateExpedition(TwoRoomMap(RoomType.Empty), rules, inventory, new ScriptedRandom(), events);
 
             Assert.That(expedition.TryMoveTo(1), Is.Null);
@@ -104,6 +104,28 @@ namespace Darkest.Tests
             Assert.That(hunger.Count, Is.EqualTo(1));
             Assert.That(hunger[0].HadFood, Is.True);
             Assert.That(inventory.Food, Is.EqualTo(0));
+        }
+
+        [Test]
+        public void Hunger_NotEnoughFood_ConsumesNothing_AndWholePartyStarves()
+        {
+            var rules = new ExpeditionRules { CorridorSteps = 4, HungerStepInterval = 4, LightDecayPerStep = 0, HungerStress = 15, HungerDamage = 3 };
+            var events = new EventBus();
+            var hunger = TestKit.Collect<HungerChecked>(events);
+            var inventory = new Inventory(food: 1, torches: 0);
+            var expedition = CreateExpedition(TwoRoomMap(RoomType.Empty), rules, inventory, new ScriptedRandom(), events);
+
+            Assert.That(expedition.TryMoveTo(1), Is.Null);
+
+            Assert.That(hunger.Count, Is.EqualTo(1));
+            Assert.That(hunger[0].HadFood, Is.False);
+            Assert.That(inventory.Food, Is.EqualTo(1), "2명 파티에 식량 1개면 아무것도 먹지 않는다");
+            foreach (var member in expedition.Party.Members)
+            {
+                var hero = (Hero)member;
+                Assert.That(hero.CurrentHp, Is.EqualTo(hero.MaxHp - 3));
+                Assert.That(hero.Stress.Current, Is.EqualTo(15));
+            }
         }
 
         [Test]

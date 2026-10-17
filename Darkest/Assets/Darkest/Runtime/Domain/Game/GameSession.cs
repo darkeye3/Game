@@ -96,7 +96,7 @@ namespace Darkest.Domain.Game
             for (int i = 0; i < party.Count; i++) formation.Add(party[i]);
 
             var map = _dungeonGenerator.Generate(_random);
-            Expedition = new Expedition(formation, map, inventory, _config.Expedition, Stress, Catalog, _random, Events, _logger);
+            Expedition = new Expedition(formation, map, inventory, _config.Expedition, _config.Combat, Stress, Catalog, _random, Events, _logger);
             SetMode(GameMode.Exploring);
             return null;
         }
