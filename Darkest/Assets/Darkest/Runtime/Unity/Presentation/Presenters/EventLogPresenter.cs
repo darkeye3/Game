@@ -4,6 +4,8 @@ using Darkest.Domain.Combat;
 using Darkest.Domain.Combat.Events;
 using Darkest.Domain.Core;
 using Darkest.Domain.Dungeon;
+using Darkest.Domain.Game;
+using Darkest.Domain.Progression;
 using Darkest.Domain.Stress;
 using Darkest.Unity.Presentation.Views;
 
@@ -34,7 +36,9 @@ namespace Darkest.Unity.Presentation.Presenters
             On<ResolveActed>(events, e => "  " + e.Hero.DisplayName + " [" + e.Resolve.DisplayName + "] 발동");
             On<HeartAttackSuffered>(events, e => "!! " + e.Hero.DisplayName + " 심장마비 → " + (e.Outcome == DamageOutcome.Killed ? "사망" : "죽음의 문턱"));
             On<RoomEntered>(events, e => "방 " + e.Room.Id + " 진입: " + TextFormat.RoomTypeName(e.Room.Type));
-            On<HungerChecked>(events, e => e.HadFood ? "식량 1개 소모" : "식량이 없다! 파티가 굶주린다");
+            On<HungerChecked>(events, e => e.HadFood ? "식량 소모 (파티 인원수만큼)" : "식량이 모자라다! 파티가 굶주린다");
+            On<HeroLeveledUp>(events, e => "▲ " + e.Hero.DisplayName + " 레벨 " + e.Level + " 달성");
+            On<BattleRetreatAttempted>(events, e => e.Succeeded ? "» 도주 성공 — 마을로 도망친다" : "후퇴 실패! " + e.Actor.DisplayName + "의 차례가 넘어갔다");
             On<LootGained>(events, e => "골드 +" + e.Gold + " (" + e.Source + ")");
             On<CurioResolved>(events, e => e.Curio.DisplayName + ": " + e.Outcome.Description);
             On<CampMade>(events, e => "야영: 파티 HP +" + e.HealedTotal + ", 스트레스 -" + e.StressRelief + " (장작불이 꺼지며 어두워졌다)");

@@ -1,6 +1,7 @@
 using Darkest.Domain.Combat.Resolution;
 using Darkest.Domain.Dungeon;
 using Darkest.Domain.Hamlet;
+using Darkest.Domain.Progression;
 using Darkest.Domain.Stress;
 
 namespace Darkest.Domain.Game
@@ -13,5 +14,6 @@ namespace Darkest.Domain.Game
         public DungeonGenerationRules Dungeon { get; } = new DungeonGenerationRules();
         public ExpeditionRules Expedition { get; } = new ExpeditionRules();
         public TownRules Town { get; } = new TownRules();
+        public ProgressionRules Progression { get; } = new ProgressionRules();
     }
 }

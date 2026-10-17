@@ -7,6 +7,7 @@ using Darkest.Domain.Combat.Skills;
 using Darkest.Domain.Combat.Stats;
 using Darkest.Domain.Content;
 using Darkest.Domain.Core;
+using Darkest.Domain.Progression;
 using Darkest.Domain.Stress;
 
 namespace Darkest.Tests
@@ -82,6 +83,9 @@ namespace Darkest.Tests
             rules = rules ?? new CombatRules();
             return new BattleServices(random, events, logger ?? NullLogger.Instance, rules, StressService(random, events));
         }
+
+        public static HeroProgression Progression(IEventBus events = null, ProgressionRules rules = null) =>
+            new HeroProgression(rules ?? new ProgressionRules(), events ?? new EventBus());
 
         /// <summary>이벤트를 타입별로 수집한다.</summary>
         public static List<T> Collect<T>(IEventBus events) where T : IDomainEvent

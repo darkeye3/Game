@@ -24,6 +24,16 @@ namespace Darkest.Domain.Combat
         public StressMeter Stress { get; }
         public bool IsAtDeathsDoor { get; private set; }
 
+        /// <summary>누적 경험치와 레벨. HeroProgression만 바꾼다.</summary>
+        public int Experience { get; private set; }
+        public int Level { get; private set; }
+
+        internal void SetProgress(int experience, int level)
+        {
+            Experience = experience;
+            Level = level;
+        }
+
         /// <summary>세이브 복원 전용. HP 0인 생존 영웅만 죽음의 문턱으로 되돌린다.</summary>
         internal void RestoreDeathsDoor()
         {

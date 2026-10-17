@@ -23,6 +23,21 @@ namespace Darkest.Unity.Data
             [SerializeField] internal int stressOnDeathsDoor = 15;
             [SerializeField] internal int stressOnAllyDeath = 20;
             [SerializeField, Min(1)] internal int initiativeDieSides = 8;
+            [SerializeField, Range(0, 100)] internal int retreatChancePercent = 75;
+            [SerializeField] internal int stressOnRetreat = 10;
+        }
+
+        [Serializable]
+        private sealed class ProgressionSection
+        {
+            [SerializeField, Tooltip("레벨 n에 필요한 누적 경험치. 0으로 시작, 증가해야 함")] internal int[] xpThresholds = { 0, 4, 10, 18, 28, 40 };
+            [SerializeField, Min(0)] internal int xpPerBattleWon = 1;
+            [SerializeField, Min(0)] internal int xpOnExpeditionCompleted = 4;
+            [SerializeField, Min(0)] internal int xpOnExpeditionRetreated = 1;
+            [SerializeField] internal int maxHpPerLevel = 3;
+            [SerializeField] internal int accuracyPerLevel = 2;
+            [SerializeField] internal int damagePerLevel = 1;
+            [SerializeField] internal int dodgePerLevel = 1;
         }
 
         [Serializable]
@@ -76,6 +91,7 @@ namespace Darkest.Unity.Data
         [SerializeField] private StressSection stress = new StressSection();
         [SerializeField] private DungeonSection dungeon = new DungeonSection();
         [SerializeField] private TownSection town = new TownSection();
+        [SerializeField] private ProgressionSection progression = new ProgressionSection();
 
         public GameConfig CreateConfig()
         {
@@ -87,6 +103,7 @@ namespace Darkest.Unity.Data
             c.StressOnCritReceived = combat.stressOnCritReceived; c.StressReliefOnHeroCrit = combat.stressReliefOnHeroCrit;
             c.StressOnDeathsDoor = combat.stressOnDeathsDoor; c.StressOnAllyDeath = combat.stressOnAllyDeath;
             c.InitiativeDieSides = combat.initiativeDieSides;
+            c.RetreatChancePercent = combat.retreatChancePercent; c.StressOnRetreat = combat.stressOnRetreat;
 
             var s = config.Stress;
             s.MaxStress = stress.maxStress; s.ResolveThreshold = stress.resolveThreshold; s.VirtueChance = stress.virtueChance;
@@ -111,6 +128,13 @@ namespace Darkest.Unity.Data
             t.StartingGold = town.startingGold; t.StartingHeroes = town.startingHeroes; t.RecruitCost = town.recruitCost;
             t.TavernCost = town.tavernCost; t.TavernStressRelief = town.tavernStressRelief;
             t.FoodPrice = town.foodPrice; t.TorchPrice = town.torchPrice; t.FirewoodPrice = town.firewoodPrice;
+
+            var p = config.Progression;
+            p.XpThresholds = (int[])progression.xpThresholds.Clone();
+            p.XpPerBattleWon = progression.xpPerBattleWon; p.XpOnExpeditionCompleted = progression.xpOnExpeditionCompleted;
+            p.XpOnExpeditionRetreated = progression.xpOnExpeditionRetreated;
+            p.MaxHpPerLevel = progression.maxHpPerLevel; p.AccuracyPerLevel = progression.accuracyPerLevel;
+            p.DamagePerLevel = progression.damagePerLevel; p.DodgePerLevel = progression.dodgePerLevel;
 
             return config;
         }

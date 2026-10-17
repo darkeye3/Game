@@ -3,6 +3,7 @@ using Darkest.Domain.Combat;
 using Darkest.Domain.Content;
 using Darkest.Domain.Core;
 using Darkest.Domain.Hamlet;
+using Darkest.Domain.Progression;
 using Darkest.Domain.Stress;
 
 namespace Darkest.Domain.Save
@@ -13,10 +14,12 @@ namespace Darkest.Domain.Save
         private readonly IContentCatalog _catalog;
         private readonly CombatantFactory _factory;
         private readonly StressService _stress;
+        private readonly HeroProgression _progression;
         private readonly IGameLogger _logger;
 
-        public SaveMapper(IContentCatalog catalog, CombatantFactory factory, StressService stress, IGameLogger logger)
+        public SaveMapper(IContentCatalog catalog, CombatantFactory factory, StressService stress, HeroProgression progression, IGameLogger logger)
         {
+            _progression = Guard.NotNull(progression, nameof(progression));
             _catalog = Guard.NotNull(catalog, nameof(catalog));
             _factory = Guard.NotNull(factory, nameof(factory));
             _stress = Guard.NotNull(stress, nameof(stress));
@@ -55,7 +58,8 @@ namespace Darkest.Domain.Save
             Stress = hero.Stress.Current,
             ResolveId = hero.Stress.Resolve?.Id ?? string.Empty,
             IsDead = hero.IsDead,
-            IsAtDeathsDoor = hero.IsAtDeathsDoor
+            IsAtDeathsDoor = hero.IsAtDeathsDoor,
+            Experience = hero.Experience
         };
 
         private Hero RestoreHero(HeroSaveData saved)
@@ -72,6 +76,7 @@ namespace Darkest.Domain.Save
             }
 
             var hero = _factory.CreateHero(heroClass, saved.Name, saved.Id);
+            _progression.Restore(hero, saved.Experience); // 레벨 보너스로 MaxHp가 바뀌므로 HP보다 먼저
             hero.RestoreHp(saved.Hp);
             _stress.Restore(hero, saved.Stress, _catalog.FindResolve(saved.ResolveId));
             if (saved.IsDead) hero.RestoreDead();

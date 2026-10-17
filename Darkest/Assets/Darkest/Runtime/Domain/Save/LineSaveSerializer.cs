@@ -9,8 +9,8 @@ namespace Darkest.Domain.Save
     /// <code>
     /// darkest-save|1
     /// town|gold|week|nextId
-    /// hero|id|classId|name|hp|stress|resolveId|dead|deathsDoor
-    /// exp|room|steps|light|food|torches|firewood|gold|entrance|boss|seed   (원정 중 저장일 때만)
+    /// hero|id|classId|name|hp|stress|resolveId|dead|deathsDoor|xp
+    /// exp|room|steps|light|food|torches|firewood|gold|entrance|boss|seed|battlesWon   (원정 중 저장일 때만)
     /// party|heroId...        embarked|heroId...
     /// room|id|type|encounterId|gold|cleared|visited
     /// link|a|b
@@ -31,7 +31,7 @@ namespace Darkest.Domain.Save
             AppendLine(sb, "town", Int(data.Gold), Int(data.Week), Int(data.NextId));
             foreach (var hero in data.Roster)
                 AppendLine(sb, "hero", hero.Id, hero.ClassId, hero.Name, Int(hero.Hp), Int(hero.Stress), hero.ResolveId ?? string.Empty,
-                    Bool(hero.IsDead), Bool(hero.IsAtDeathsDoor));
+                    Bool(hero.IsDead), Bool(hero.IsAtDeathsDoor), Int(hero.Experience));
             if (data.Expedition != null) AppendExpedition(sb, data.Expedition);
             return sb.ToString();
         }
@@ -39,7 +39,7 @@ namespace Darkest.Domain.Save
         private static void AppendExpedition(StringBuilder sb, ExpeditionSaveData e)
         {
             AppendLine(sb, "exp", Int(e.CurrentRoomId), Int(e.StepsTaken), Int(e.Light), Int(e.Food), Int(e.Torches),
-                Int(e.Firewood), Int(e.Gold), Int(e.EntranceId), Int(e.BossRoomId), Int(e.MapSeed));
+                Int(e.Firewood), Int(e.Gold), Int(e.EntranceId), Int(e.BossRoomId), Int(e.MapSeed), Int(e.BattlesWon));
             AppendIds(sb, "party", e.PartyIds);
             AppendIds(sb, "embarked", e.EmbarkedIds);
             foreach (var room in e.Rooms)
@@ -125,7 +125,8 @@ namespace Darkest.Domain.Save
             Stress = ParseInt(fields, 5),
             ResolveId = fields.Length > 6 ? fields[6] : string.Empty,
             IsDead = fields.Length > 7 && ParseBool(fields, 7),
-            IsAtDeathsDoor = fields.Length > 8 && ParseBool(fields, 8)
+            IsAtDeathsDoor = fields.Length > 8 && ParseBool(fields, 8),
+            Experience = fields.Length > 9 ? ParseInt(fields, 9) : 0
         };
 
         private static ExpeditionSaveData ParseExpedition(string[] f) => new ExpeditionSaveData
@@ -139,7 +140,8 @@ namespace Darkest.Domain.Save
             Gold = ParseInt(f, 7),
             EntranceId = ParseInt(f, 8),
             BossRoomId = ParseInt(f, 9),
-            MapSeed = ParseInt(f, 10)
+            MapSeed = ParseInt(f, 10),
+            BattlesWon = f.Length > 11 ? ParseInt(f, 11) : 0
         };
 
         private static RoomSaveData ParseRoom(string[] f) => new RoomSaveData

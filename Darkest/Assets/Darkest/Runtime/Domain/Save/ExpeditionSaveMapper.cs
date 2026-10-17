@@ -49,6 +49,7 @@ namespace Darkest.Domain.Save
             {
                 CurrentRoomId = expedition.CurrentRoomId,
                 StepsTaken = expedition.StepsTaken,
+                BattlesWon = expedition.BattlesWon,
                 Light = expedition.Light.Value,
                 Food = inventory.Food,
                 Torches = inventory.Torches,
@@ -91,7 +92,7 @@ namespace Darkest.Domain.Save
             inventory.AddGold(data.Gold);
 
             var expedition = new Expedition(party, RestoreMap(data), inventory, _rules, _combatRules, _stress, _catalog, _random, _events, _logger);
-            expedition.RestoreProgress(embarked, data.CurrentRoomId, data.StepsTaken, data.Light);
+            expedition.RestoreProgress(embarked, data.CurrentRoomId, data.StepsTaken, data.Light, data.BattlesWon);
             return expedition;
         }
 

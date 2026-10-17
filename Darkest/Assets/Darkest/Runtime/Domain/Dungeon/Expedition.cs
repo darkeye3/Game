@@ -58,6 +58,7 @@ namespace Darkest.Domain.Dungeon
         public int CurrentRoomId { get; private set; }
         public Room CurrentRoom => Map.Get(CurrentRoomId);
         public int StepsTaken { get; private set; }
+        public int BattlesWon { get; private set; }
         public ExpeditionPhase Phase { get; private set; } = ExpeditionPhase.Exploring;
         public bool IsFinished => Phase == ExpeditionPhase.Completed || Phase == ExpeditionPhase.Failed || Phase == ExpeditionPhase.Retreated;
 
@@ -73,7 +74,7 @@ namespace Darkest.Domain.Dungeon
         /// 세이브 복원 전용: 생성자가 만든 초기 상태 위에 저장된 진행도를 덮어쓴다.
         /// embarked에는 이미 사망한 영웅도 포함된다(마을 귀환 시 명부 정리에 필요).
         /// </summary>
-        internal void RestoreProgress(IReadOnlyList<Hero> embarked, int currentRoomId, int stepsTaken, int light)
+        internal void RestoreProgress(IReadOnlyList<Hero> embarked, int currentRoomId, int stepsTaken, int light, int battlesWon)
         {
             Guard.That(Phase == ExpeditionPhase.Exploring && StepsTaken == 0, "새로 만든 원정에만 진행도를 복원할 수 있습니다.");
             Map.Get(currentRoomId); // 존재하지 않는 방이면 여기서 KeyNotFoundException
@@ -81,6 +82,7 @@ namespace Darkest.Domain.Dungeon
             _embarked.AddRange(embarked);
             CurrentRoomId = currentRoomId;
             StepsTaken = stepsTaken;
+            BattlesWon = battlesWon;
             Light.Change(light - Light.Value);
             CollectFallen();
         }
@@ -158,6 +160,7 @@ namespace Darkest.Domain.Dungeon
                 return;
             }
 
+            BattlesWon++;
             var room = CurrentRoom;
             room.IsCleared = true;
             GainGold(_lightEffects.ScaleLoot(room.GoldReward, Light.Level), "전투 보상");

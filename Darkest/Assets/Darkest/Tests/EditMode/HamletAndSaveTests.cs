@@ -19,7 +19,7 @@ namespace Darkest.Tests
             var catalog = DefaultContent.Create();
             stress = TestKit.StressService(random, events);
             factory = new CombatantFactory(catalog, new SequentialIdGenerator(), 200);
-            var service = new TownService(new Town(gold, 1), new TownRules(), stress, factory, random, events);
+            var service = new TownService(new Town(gold, 1), new TownRules(), stress, factory, TestKit.Progression(events), random, events);
             service.SetupNewGame();
             return service;
         }
@@ -104,13 +104,13 @@ namespace Darkest.Tests
             var catalog = DefaultContent.Create();
             var affliction = catalog.Afflictions[0];
 
-            var mapper = new SaveMapper(catalog, factory, stress, NullLogger.Instance);
+            var mapper = new SaveMapper(catalog, factory, stress, TestKit.Progression(), NullLogger.Instance);
             var data = mapper.Capture(service.Town);
             data.Roster[0].ResolveId = affliction.Id;
 
             var text = new LineSaveSerializer().Serialize(data);
             var freshFactory = new CombatantFactory(catalog, new SequentialIdGenerator(), 200);
-            var restoredTown = new SaveMapper(catalog, freshFactory, stress, NullLogger.Instance)
+            var restoredTown = new SaveMapper(catalog, freshFactory, stress, TestKit.Progression(), NullLogger.Instance)
                 .Restore(new LineSaveSerializer().Deserialize(text));
 
             var restored = restoredTown.FindHero(hero.Id);
@@ -128,7 +128,7 @@ namespace Darkest.Tests
             var catalog = DefaultContent.Create();
             var logger = new MemoryLogger();
             var mapper = new SaveMapper(catalog, new CombatantFactory(catalog, new SequentialIdGenerator(), 200),
-                TestKit.StressService(new ScriptedRandom()), logger);
+                TestKit.StressService(new ScriptedRandom()), TestKit.Progression(), logger);
             var data = new GameSaveData { Gold = 1, Week = 1, NextId = 1 };
             data.Roster.Add(new HeroSaveData { Id = "x", ClassId = "deleted_class", Name = "유령", Hp = 1 });
 

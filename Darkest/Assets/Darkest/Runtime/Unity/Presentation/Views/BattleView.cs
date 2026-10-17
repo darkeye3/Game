@@ -27,6 +27,7 @@ namespace Darkest.Unity.Presentation.Views
         public event Action BackwardClicked;
         public event Action PassClicked;
         public event Action AutoClicked;
+        public event Action RetreatClicked;
         public event Action ContinueClicked;
 
         public PooledButtonList Skills => _skills;
@@ -49,10 +50,11 @@ namespace Darkest.Unity.Presentation.Views
             _skills = new PooledButtonList(Factory, Factory.CreateScrollList(skills, "SkillList"));
             // 이동/대기/자동은 한 줄로 묶어 스킬 목록에 세로 공간을 더 준다.
             var row = Factory.CreateHorizontal(skills, "ActionRow");
-            AddButton(row, "◀ 전진", () => ForwardClicked?.Invoke());
-            AddButton(row, "후퇴 ▶", () => BackwardClicked?.Invoke());
+            AddButton(row, "◀ 앞으로", () => ForwardClicked?.Invoke());
+            AddButton(row, "뒤로 ▶", () => BackwardClicked?.Invoke());
             AddButton(row, "대기", () => PassClicked?.Invoke());
             AddButton(row, "자동", () => AutoClicked?.Invoke());
+            AddButton(row, "도주", () => RetreatClicked?.Invoke());
 
             var targets = Column(root, "Targets", 0.51f, 0.74f, PanelBottom, panelTop);
             Factory.CreateText(targets, "TargetTitle", UiTheme.SmallFontSize, TextAnchor.MiddleLeft, TitleHeight).text = "대상";

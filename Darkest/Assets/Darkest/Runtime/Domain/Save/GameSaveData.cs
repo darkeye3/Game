@@ -25,6 +25,7 @@ namespace Darkest.Domain.Save
     {
         public int CurrentRoomId { get; set; }
         public int StepsTaken { get; set; }
+        public int BattlesWon { get; set; }
         public int Light { get; set; }
         public int Food { get; set; }
         public int Torches { get; set; }
@@ -74,6 +75,7 @@ namespace Darkest.Domain.Save
 
         public bool IsDead { get; set; }
         public bool IsAtDeathsDoor { get; set; }
+        public int Experience { get; set; }
     }
 
     /// <summary>저장 포맷 Strategy. 포맷을 바꾸려면(JSON/바이너리) 이 인터페이스를 새로 구현한다.</summary>

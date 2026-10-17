@@ -3,6 +3,7 @@ using Darkest.Domain.Combat;
 using Darkest.Domain.Content;
 using Darkest.Domain.Core;
 using Darkest.Domain.Dungeon;
+using Darkest.Domain.Progression;
 using Darkest.Domain.Stress;
 
 namespace Darkest.Domain.Hamlet
@@ -22,13 +23,15 @@ namespace Darkest.Domain.Hamlet
         private readonly Town _town;
         private readonly TownRules _rules;
         private readonly StressService _stress;
+        private readonly HeroProgression _progression;
         private readonly CombatantFactory _factory;
         private readonly IRandom _random;
         private readonly IEventBus _events;
 
         public TownService(Town town, TownRules rules, StressService stress, CombatantFactory factory,
-            IRandom random, IEventBus events)
+            HeroProgression progression, IRandom random, IEventBus events)
         {
+            _progression = Guard.NotNull(progression, nameof(progression));
             _town = Guard.NotNull(town, nameof(town));
             _rules = Guard.NotNull(rules, nameof(rules));
             _stress = Guard.NotNull(stress, nameof(stress));
@@ -102,9 +105,11 @@ namespace Darkest.Domain.Hamlet
         {
             Guard.NotNull(expedition, nameof(expedition));
             for (int i = 0; i < expedition.Fallen.Count; i++) _town.RemoveFromRoster(expedition.Fallen[i]);
+            int xp = _progression.ExpeditionXp(expedition);
             for (int i = 0; i < expedition.Embarked.Count; i++)
             {
                 var hero = expedition.Embarked[i];
+                _progression.Grant(hero, xp); // 레벨업으로 MaxHp가 오른 뒤에 완전 회복
                 if (hero.IsAlive) hero.Heal(hero.MaxHp);
                 hero.Statuses.Clear();
             }

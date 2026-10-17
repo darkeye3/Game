@@ -1,5 +1,6 @@
 using System.Text;
 using Darkest.Domain.Combat;
+using Darkest.Domain.Combat.Skills;
 using Darkest.Domain.Combat.Status;
 using Darkest.Domain.Combat.Events;
 using Darkest.Domain.Dungeon;
@@ -13,7 +14,9 @@ namespace Darkest.Unity.Presentation.Presenters
     {
         public static void AppendCombatant(StringBuilder sb, Combatant combatant, int rank)
         {
-            sb.Append(rank).Append("열 ").Append(combatant.DisplayName)
+            sb.Append(rank).Append("열 ").Append(combatant.DisplayName);
+            if (combatant is Hero leveled) sb.Append(" Lv").Append(leveled.Level);
+            sb
               .Append("  HP ").Append(combatant.CurrentHp).Append('/').Append(combatant.MaxHp);
 
             if (combatant is Hero hero)
@@ -38,9 +41,35 @@ namespace Darkest.Unity.Presentation.Presenters
         public static string BattleSummary(BattleSummary summary)
         {
             var sb = new StringBuilder();
-            sb.Append(summary.Result == BattleResult.Victory ? "승리!" : "패배...").Append("  (").Append(summary.Rounds).Append("라운드)\n");
+            sb.Append(ResultName(summary.Result)).Append("  (").Append(summary.Rounds).Append("라운드)\n");
             if (summary.GoldGained > 0) sb.Append("전리품 +").Append(summary.GoldGained).Append("G\n");
             for (int i = 0; i < summary.Fallen.Count; i++) sb.Append("✝ ").Append(summary.Fallen[i].DisplayName).Append('\n');
+            return sb.ToString();
+        }
+
+        public static string ResultName(BattleResult result)
+        {
+            switch (result)
+            {
+                case BattleResult.Victory: return "승리!";
+                case BattleResult.Fled: return "후퇴 — 마을로 도망쳤다.";
+                default: return "패배...";
+            }
+        }
+
+        /// <summary>스킬 툴팁: 사용 열, 대상 열, 명중, 피해 배율, 부가 효과.</summary>
+        public static string SkillTooltip(SkillDefinition skill)
+        {
+            var sb = new StringBuilder();
+            sb.Append(skill.DisplayName).Append("  사용 ").Append(skill.UsableFrom.ToRankString()).Append("열");
+            if (skill.Side != TargetSide.Self)
+                sb.Append(" → ").Append(skill.IsAttack ? "적 " : "아군 ").Append(skill.TargetRanks.ToRankString()).Append("열")
+                  .Append(skill.HitsAllTargets ? " 전체" : "");
+            if (skill.IsAttack) sb.Append("  명중 ").Append(skill.Accuracy);
+            if (skill.DealsDamage) sb.Append("  피해 ").Append(skill.DamagePercent).Append('%');
+            if (skill.CritBonus != 0) sb.Append("  치명 +").Append(skill.CritBonus);
+            if (skill.SelfMove != 0) sb.Append("  이동 ").Append(skill.SelfMove > 0 ? "뒤로 " : "앞으로 ").Append(System.Math.Abs(skill.SelfMove));
+            for (int i = 0; i < skill.Effects.Count; i++) sb.Append(" / ").Append(skill.Effects[i].Describe());
             return sb.ToString();
         }
 

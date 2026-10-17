@@ -37,6 +37,7 @@ namespace Darkest.Unity.Presentation.Presenters
             _view.BackwardClicked += OnBackward;
             _view.PassClicked += OnPass;
             _view.AutoClicked += OnAuto;
+            _view.RetreatClicked += OnRetreat;
             _view.ContinueClicked += OnContinue;
         }
 
@@ -114,6 +115,7 @@ namespace Darkest.Unity.Presentation.Presenters
             if (_animations.IsPlaying) return;
             var actor = _session.Battle.CurrentActor;
             _selectedSkill = skill;
+            _view.SetMessage(TextFormat.SkillTooltip(skill));
             SkillTargeting.CollectValidTargets(Context, actor, skill, _targets);
 
             // 광역/자신 대상은 대상 선택 단계를 건너뛴다.
@@ -130,6 +132,13 @@ namespace Darkest.Unity.Presentation.Presenters
         private void OnPass() => SubmitIfHeroTurn(actor => new PassCommand(actor));
         private void OnAuto() => SubmitIfHeroTurn(actor => _autoPilot.Decide(Context, actor));
 
+        private void OnRetreat()
+        {
+            var battle = _session.Battle;
+            if (battle == null || !battle.IsAwaitingHeroCommand || _animations.IsPlaying) return;
+            AfterSubmit(_session.TryRetreatFromBattle());
+        }
+
         private void SubmitIfHeroTurn(Func<Combatant, IBattleCommand> build)
         {
             var battle = _session.Battle;
@@ -140,7 +149,11 @@ namespace Darkest.Unity.Presentation.Presenters
         private void Submit(IBattleCommand command)
         {
             if (_animations.IsPlaying) return; // 연출 중 입력 무시
-            string error = _session.SubmitBattleCommand(command);
+            AfterSubmit(_session.SubmitBattleCommand(command));
+        }
+
+        private void AfterSubmit(string error)
+        {
             ClearSelection();
             _view.SetMessage(error ?? string.Empty);
             if (error != null) { Render(); return; }
@@ -178,6 +191,7 @@ namespace Darkest.Unity.Presentation.Presenters
             _view.BackwardClicked -= OnBackward;
             _view.PassClicked -= OnPass;
             _view.AutoClicked -= OnAuto;
+            _view.RetreatClicked -= OnRetreat;
             _view.ContinueClicked -= OnContinue;
         }
     }

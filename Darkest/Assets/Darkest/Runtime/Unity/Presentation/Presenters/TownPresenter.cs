@@ -63,7 +63,7 @@ namespace Darkest.Unity.Presentation.Presenters
             {
                 var hero = town.Roster[i];
                 int slot = _party.IndexOf(hero);
-                string label = (slot >= 0 ? "[" + (slot + 1) + "열] " : "") + hero.DisplayName + " · " + ClassName(hero)
+                string label = (slot >= 0 ? "[" + (slot + 1) + "열] " : "") + hero.DisplayName + " Lv" + hero.Level + " · " + ClassName(hero)
                                + "  HP " + hero.CurrentHp + "/" + hero.MaxHp + "  스트레스 " + hero.Stress.Current;
                 _view.Roster.Add(label, () => OnHeroClicked(hero), true, slot >= 0);
             }
@@ -88,6 +88,9 @@ namespace Darkest.Unity.Presentation.Presenters
             if (_selected == null) return "영웅을 선택하세요.\n클릭 순서대로 1~4열에 배치됩니다.";
             _sb.Clear();
             _sb.Append(_selected.DisplayName).Append(" · ").Append(ClassName(_selected)).Append('\n');
+            _sb.Append("레벨 ").Append(_selected.Level).Append("  경험치 ").Append(_selected.Experience);
+            int toNext = _session.Progression.XpToNextLevel(_selected);
+            _sb.Append(toNext > 0 ? "  (다음 레벨까지 " + toNext + ")" : "  (최대 레벨)").Append('\n');
             _sb.Append("HP ").Append(_selected.CurrentHp).Append('/').Append(_selected.MaxHp)
                .Append("  스트레스 ").Append(_selected.Stress.Current).Append('/').Append(_selected.Stress.Max).Append('\n');
             if (_selected.Stress.Resolve != null) _sb.Append("결의: ").Append(_selected.Stress.Resolve.DisplayName).Append('\n');
@@ -97,9 +100,7 @@ namespace Darkest.Unity.Presentation.Presenters
                .Append("  피해 ").Append(_selected.GetStat(StatType.DamageMin)).Append('~').Append(_selected.GetStat(StatType.DamageMax)).Append("\n\n스킬\n");
             foreach (var skill in _selected.Skills)
             {
-                _sb.Append("· ").Append(skill.DisplayName);
-                for (int i = 0; i < skill.Effects.Count; i++) _sb.Append(" / ").Append(skill.Effects[i].Describe());
-                _sb.Append('\n');
+                _sb.Append("· ").Append(TextFormat.SkillTooltip(skill)).Append('\n');
             }
             return _sb.ToString();
         }

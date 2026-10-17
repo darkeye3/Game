@@ -9,7 +9,10 @@ namespace Darkest.Domain.Combat.Events
     public enum BattleResult
     {
         Victory,
-        Defeat
+        Defeat,
+
+        /// <summary>영웅이 전투에서 후퇴(원정도 함께 종료).</summary>
+        Fled
     }
 
     public sealed class BattleStarted : IDomainEvent
