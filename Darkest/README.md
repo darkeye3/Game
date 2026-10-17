@@ -12,7 +12,7 @@
 - 아트/사운드는 더미. `Resources/Darkest/Placeholders/*.png`를 같은 이름으로 덮어쓰면 교체된다.
 - UI는 프리팹 없이 코드로 생성(uGUI + 내장 `LegacyRuntime.ttf`). 씬에는 `GameBootstrap` 하나만 있으면 된다.
 - 입력: Input System 패키지가 있으면 `InputSystemUIInputModule`, 없으면 `StandaloneInputModule`을 자동 선택(asmdef versionDefines).
-- 저장은 **마을에서만**(탐험/전투 중 저장은 확장 범위).
+- 저장은 **마을**과 **던전 탐험 중(전투 밖)**에서 가능. 전투 중 저장은 확장 범위. 던전 저장에는 상태이상과 난수 상태가 빠진다.
 - 기존 저장소 루트의 2022.3 프로젝트와 섞지 않도록 `Darkest/` 폴더에 **독립 Unity 프로젝트**로 만들었다.
 
 ### 범위
@@ -20,13 +20,13 @@
 |---|---|
 | 4:4 진형 전투, 열(rank) 기반 스킬 사용/타격 규칙 | 시체(corpse), 표식(mark), 버프/디버프 스킬, 은신, 전투 종료 연출 대기 |
 | 명중/회피/치명/방어, 출혈·역병·기절, 밀치기/당기기 | 몬스터 크기(2칸), 보스 전용 AI·페이즈 |
-| 죽음의 문턱 + 치명상 저항 | 영웅 레벨/장비/기벽(quirk)/질병 |
+| 죽음의 문턱 + 치명상 저항, 영웅 경험치/레벨(Lv0~5, 능력치 상승) | 장비/장신구, 기벽(quirk)/질병 |
 | 스트레스, 결의 판정(고통/미덕), 고통 폭주·미덕 격려, 심장마비 | 고통 시 명령 거부/자해 등 행동 이상 |
 | 던전 자동 생성(메인 경로+곁가지), 빛/횃불, 허기, 골동품, 보물, 보스 | 야영 스킬(직업별), 함정/정찰, 복도 조우 |
 | 빛 보정(어두울수록 몬스터 명중/치명↑, 전리품↑), 야영(장작+식량 → 회복/스트레스 완화) | |
 | 전투 연출 큐(피격 흔들림, 데미지/회복/상태 숫자), 연출 중 입력 잠금 | 스킬 애니메이션, 사운드, 카메라 연출 |
 | 마을: 명부, 모집(역마차), 선술집, 보급, 해고, 귀환 정산 | 건물 업그레이드, 요양원, 대장간, 주간 이벤트 |
-| 로컬 세이브/로드(마을 상태), seed 재현 | 탐험 중 저장, 클라우드 세이브, 리플레이 뷰어 |
+| 로컬 세이브/로드(마을 + 던전 탐험 중), seed 재현 | 전투 중 저장, 클라우드 세이브, 리플레이 뷰어 |
 
 ---
 
@@ -41,7 +41,7 @@
 
 ### 플레이 흐름
 마을(영웅 클릭 순서대로 1~4열 편성, 식량/횃불/장작 구매) → **던전 출발** → 인접 방으로 이동(복도마다 빛 감소·스트레스)
-→ 정리된 방에서 **야영** 가능 → 전투방에서 **스킬 → 대상** 선택(연출이 끝나면 다음 입력) → 보스 처치/후퇴/전멸 → 결과 → **마을로 귀환**(사망자 제거, 전리품 입금, 주차 +1).
+→ 정리된 방에서 **야영**·**저장** 가능 → 전투방에서 **스킬 → 대상** 선택(연출이 끝나면 다음 입력, 영웅 차례에 **도주** 75%) → 전투 결과 패널 → 보스 처치/후퇴/전멸 → 결과 → **마을로 귀환**(사망자 제거, 경험치·레벨업, 전리품 입금, 주차 +1, 자동 저장).
 
 ### `GameBootstrap` 인스펙터
 | 필드 | 설명 |
@@ -197,10 +197,11 @@ battle.Submit(new UseSkillCommand(battle.CurrentActor, skill, target)); // 실�
 | 마을 건물 | `TownService`에 서비스 메서드 or 건물별 서비스 클래스 분리 | |
 | 연출(애니메이션/이펙트) | `BattleAnimationPresenter`(이벤트→비트) + `BattleAnimationPlayer`(재생). 새 이벤트 연출은 Presenter에 한 줄 | 전투가 끝나도 `ContinueAfterBattle` 전까지 전투 화면 유지 → 마지막 일격까지 재생 후 결과 패널 |
 | 프리팹 UI | `SceneScaffold`/`UiFactory`만 교체. View의 이벤트/Render API 유지 | |
-| 세이브 포맷(JSON 등) | `ISaveSerializer` 새 구현. 탐험 중 저장은 `GameSaveData` 확장 + `SaveMapper` | |
+| 세이브 포맷(JSON 등) | `ISaveSerializer` 새 구현. 탐험 저장은 `ExpeditionSaveData` + `ExpeditionSaveMapper` | 상태이상·RNG 상태 저장은 아직 없음 |
+| 성장(레벨 보상) | `ProgressionRules`(경험치 표·레벨당 보정) + `HeroProgression` | 수치는 `BalanceConfigSO` Progression 섹션 |
 | 리플레이 | seed + `BattleContext.History`(명령 기록) 재실행 | 테스트 `SameSeed_ReplaysIdentically` 참고 |
 
-분리 후보: `GameSession`(≈200줄)이 커지면 전투 시작/종료 연결부를 `ExpeditionBattleCoordinator`로 분리.
+전투 시작/종료/도주 연결부는 `ExpeditionBattles`로 분리했다. `GameSession`(≈230줄)이 더 커지면 저장/불러오기 연결부를 다음 분리 후보로 둔다.
 
 ---
 
