@@ -44,7 +44,7 @@ namespace Darkest.Unity.Presentation
         private void Awake()
         {
             _logger = new UnityGameLogger(logLevel);
-            _scaffold = new SceneScaffold(transform, new PlaceholderSpriteProvider(_logger));
+            _scaffold = new SceneScaffold(transform, new PlaceholderSpriteProvider(_logger), _logger);
             _saves = new SaveGateway(new FileSaveRepository(saveFileName, _logger), new LineSaveSerializer(), _logger);
             if (debugView == null) debugView = gameObject.AddComponent<GameDebugView>();
 

@@ -1,3 +1,4 @@
+using Darkest.Domain.Core;
 using Darkest.Unity.Infrastructure;
 using Darkest.Unity.Presentation.Ui;
 using Darkest.Unity.Presentation.Views;
@@ -11,14 +12,12 @@ namespace Darkest.Unity.Presentation
     /// </summary>
     public sealed class SceneScaffold
     {
-        private const float CameraSize = 5f;
-        private const float CameraDepth = -10f;
         private static readonly Color CameraBackground = new Color(0.05f, 0.04f, 0.05f);
 
-        public SceneScaffold(Transform root, ISpriteProvider sprites)
+        public SceneScaffold(Transform root, ISpriteProvider sprites, IGameLogger logger)
         {
             Ui = new UiFactory();
-            EnsureCamera();
+            var camera = EnsureCamera();
 
             var stageGo = new GameObject("BattleStage");
             stageGo.transform.SetParent(root, false);
@@ -38,6 +37,9 @@ namespace Darkest.Unity.Presentation
 
             Log = canvas.gameObject.AddComponent<EventLogView>();
             Log.Build(Ui, canvasRect, Vector2.zero, new Vector2(1f, UiTheme.LogPanelHeight));
+
+            // 카메라 크기/위치는 화면 비율에 맞춰 이 컴포넌트가 정한다(진형이 UI 패널에 가리지 않게).
+            canvas.gameObject.AddComponent<StageCameraFitter>().Initialize(camera, stageGo.transform, logger);
         }
 
         public UiFactory Ui { get; }
@@ -56,7 +58,7 @@ namespace Darkest.Unity.Presentation
             return view;
         }
 
-        private static void EnsureCamera()
+        private static Camera EnsureCamera()
         {
             var camera = Camera.main;
             if (camera == null)
@@ -65,10 +67,9 @@ namespace Darkest.Unity.Presentation
                 camera.tag = "MainCamera";
             }
             camera.orthographic = true;
-            camera.orthographicSize = CameraSize;
-            camera.transform.position = new Vector3(0f, 0f, CameraDepth);
             camera.clearFlags = CameraClearFlags.SolidColor;
             camera.backgroundColor = CameraBackground;
+            return camera;
         }
     }
 }

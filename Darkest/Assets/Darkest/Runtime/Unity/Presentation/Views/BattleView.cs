@@ -10,6 +10,10 @@ namespace Darkest.Unity.Presentation.Views
     /// </summary>
     public sealed class BattleView : ScreenView
     {
+        private const float PanelBottom = 0.02f;
+        private const float TitleHeight = 26f;
+        private const float MessageHeight = 50f;
+
         private Text _header;
         private Text _heroes;
         private Text _monsters;
@@ -27,31 +31,32 @@ namespace Darkest.Unity.Presentation.Views
 
         protected override void BuildContent(RectTransform root)
         {
-            // 배경을 투명하게 → 위쪽 절반에 월드 스테이지가 보인다.
+            // 배경을 투명하게 → 패널 사이 띠에 월드 스테이지가 보인다(StageCameraFitter가 그 띠에 맞춰 카메라를 잡는다).
             Root.GetComponent<Image>().color = Color.clear;
 
-            var top = Factory.CreatePanel(root, "HeaderBar", UiTheme.Panel, new Vector2(0.01f, 0.92f), new Vector2(0.99f, 0.99f));
+            var top = Factory.CreatePanel(root, "HeaderBar", UiTheme.Panel, new Vector2(0.01f, UiTheme.BattleHeaderBottom), new Vector2(0.99f, 0.99f));
             _header = Factory.CreateText(Factory.CreateVertical(top, "HeaderLayout"), "Header", UiTheme.BodyFontSize, TextAnchor.MiddleCenter);
 
-            var heroes = Column(root, "Heroes", 0.01f, 0.25f, 0.02f, 0.45f);
+            float panelTop = UiTheme.BattlePanelTop;
+            var heroes = Column(root, "Heroes", 0.01f, 0.25f, PanelBottom, panelTop);
             _heroes = Factory.CreateText(heroes, "HeroStatus", UiTheme.SmallFontSize);
 
-            var skills = Column(root, "Skills", 0.26f, 0.50f, 0.02f, 0.45f);
-            Factory.CreateText(skills, "SkillTitle", UiTheme.SmallFontSize, TextAnchor.MiddleLeft, 28f).text = "스킬";
-            _skills = new PooledButtonList(Factory, Factory.CreateVertical(skills, "SkillList"));
-            var row = Factory.CreateHorizontal(skills, "MoveRow");
+            var skills = Column(root, "Skills", 0.26f, 0.50f, PanelBottom, panelTop);
+            Factory.CreateText(skills, "SkillTitle", UiTheme.SmallFontSize, TextAnchor.MiddleLeft, TitleHeight).text = "스킬";
+            _skills = new PooledButtonList(Factory, Factory.CreateScrollList(skills, "SkillList"));
+            // 이동/대기/자동은 한 줄로 묶어 스킬 목록에 세로 공간을 더 준다.
+            var row = Factory.CreateHorizontal(skills, "ActionRow");
             AddButton(row, "◀ 전진", () => ForwardClicked?.Invoke());
             AddButton(row, "후퇴 ▶", () => BackwardClicked?.Invoke());
-            var row2 = Factory.CreateHorizontal(skills, "PassRow");
-            AddButton(row2, "대기", () => PassClicked?.Invoke());
-            AddButton(row2, "자동", () => AutoClicked?.Invoke());
+            AddButton(row, "대기", () => PassClicked?.Invoke());
+            AddButton(row, "자동", () => AutoClicked?.Invoke());
 
-            var targets = Column(root, "Targets", 0.51f, 0.74f, 0.02f, 0.45f);
-            Factory.CreateText(targets, "TargetTitle", UiTheme.SmallFontSize, TextAnchor.MiddleLeft, 28f).text = "대상";
-            _targets = new PooledButtonList(Factory, Factory.CreateVertical(targets, "TargetList"));
-            _message = Factory.CreateText(targets, "Message", UiTheme.SmallFontSize, TextAnchor.MiddleLeft, 60f);
+            var targets = Column(root, "Targets", 0.51f, 0.74f, PanelBottom, panelTop);
+            Factory.CreateText(targets, "TargetTitle", UiTheme.SmallFontSize, TextAnchor.MiddleLeft, TitleHeight).text = "대상";
+            _targets = new PooledButtonList(Factory, Factory.CreateScrollList(targets, "TargetList"));
+            _message = Factory.CreateText(targets, "Message", UiTheme.SmallFontSize, TextAnchor.MiddleLeft, MessageHeight);
 
-            var monsters = Column(root, "Monsters", 0.75f, 0.99f, 0.02f, 0.45f);
+            var monsters = Column(root, "Monsters", 0.75f, 0.99f, PanelBottom, panelTop);
             _monsters = Factory.CreateText(monsters, "MonsterStatus", UiTheme.SmallFontSize);
         }
 

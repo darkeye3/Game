@@ -31,7 +31,7 @@ namespace Darkest.Unity.Presentation.Views
 
             var middle = Column(root, "Actions", 0.46f, 0.70f, 0.02f, 0.98f);
             Factory.CreateText(middle, "ExitsTitle", UiTheme.SmallFontSize, TextAnchor.MiddleLeft, 30f).text = "이동";
-            _exits = new PooledButtonList(Factory, Factory.CreateVertical(middle, "Exits"));
+            _exits = new PooledButtonList(Factory, Factory.CreateScrollList(middle, "Exits"));
             AddButton(middle, "횃불 사용", () => TorchClicked?.Invoke());
             _curioButton = AddButton(middle, "골동품 조사", () => CurioClicked?.Invoke());
             _campButton = AddButton(middle, "야영 (장작 1 + 식량)", () => CampClicked?.Invoke());

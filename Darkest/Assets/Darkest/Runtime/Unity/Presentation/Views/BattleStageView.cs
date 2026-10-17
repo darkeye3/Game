@@ -15,6 +15,11 @@ namespace Darkest.Unity.Presentation.Views
         private const float CenterGap = 1.2f;
         private const float RankSpacing = 1.6f;
         private const float GroundY = 1.0f;
+
+        // 카메라 프레이밍용 여유 공간: 스프라이트 반폭, 발밑 라벨 깊이, 머리 위 떠오르는 숫자 높이.
+        private const float UnitHalfWidth = 0.75f;
+        private const float LabelDepth = 0.9f;
+        private const float Headroom = 2.5f;
         private const float GizmoSlotRadius = 0.45f;
         private const float GizmoActorMarkerHeight = 1.6f;
         private const float GizmoActorMarkerRadius = 0.15f;
@@ -67,6 +72,17 @@ namespace Darkest.Unity.Presentation.Views
 
         /// <summary>연출용: 마지막으로 그려졌던 슬롯 위치(이미 사망해 사라진 유닛도 포함).</summary>
         public bool TryGetLastSlot(string combatantId, out Vector3 position) => _lastSlotById.TryGetValue(combatantId, out position);
+
+        /// <summary>유닛·라벨·연출 텍스트가 차지하는 로컬 영역. StageCameraFitter가 이 영역이 보이도록 카메라를 맞춘다.</summary>
+        public static Rect LocalBounds
+        {
+            get
+            {
+                float halfWidth = CenterGap + (Formation.MaxRanks - 1) * RankSpacing + UnitHalfWidth;
+                float bottom = GroundY - LabelDepth;
+                return new Rect(-halfWidth, bottom, halfWidth * 2f, LabelDepth + Headroom);
+            }
+        }
 
         public static Vector3 SlotPosition(Team team, int rank)
         {
@@ -145,6 +161,10 @@ namespace Darkest.Unity.Presentation.Views
                 Gizmos.color = Color.magenta;
                 Gizmos.DrawWireSphere(transform.TransformPoint(SlotPosition(Team.Monsters, rank)), GizmoSlotRadius);
             }
+
+            var bounds = LocalBounds;
+            Gizmos.color = Color.gray;
+            Gizmos.DrawWireCube(transform.TransformPoint(bounds.center), bounds.size);
 
             if (_hasCurrentActor)
             {
