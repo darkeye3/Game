@@ -72,9 +72,9 @@ namespace Darkest.Unity.Presentation
             _animationPresenter = new BattleAnimationPresenter(events, _scaffold.Animations);
             _router = new ScreenRouter(events, _logger);
             _router.Register(_scaffold.Town, new TownPresenter(Session, _scaffold.Town, _saves, OnNewGameRequested));
-            _router.Register(_scaffold.Dungeon, new DungeonPresenter(Session, _scaffold.Dungeon));
+            _router.Register(_scaffold.Dungeon, new DungeonPresenter(Session, _scaffold.Dungeon, _saves));
             _router.Register(_scaffold.Battle, new BattlePresenter(Session, _scaffold.Battle, _scaffold.Stage, _animationPresenter));
-            _router.Register(_scaffold.Result, new ResultPresenter(Session, _scaffold.Result));
+            _router.Register(_scaffold.Result, new ResultPresenter(Session, _scaffold.Result, _saves));
             _router.Show(Session.Mode);
 
             debugView.Bind(Session);

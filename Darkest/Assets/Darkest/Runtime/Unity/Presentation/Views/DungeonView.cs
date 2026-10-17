@@ -20,6 +20,7 @@ namespace Darkest.Unity.Presentation.Views
         public event Action CurioClicked;
         public event Action RetreatClicked;
         public event Action CampClicked;
+        public event Action SaveClicked;
 
         public PooledButtonList Exits => _exits;
 
@@ -36,6 +37,7 @@ namespace Darkest.Unity.Presentation.Views
             _curioButton = AddButton(middle, "골동품 조사", () => CurioClicked?.Invoke());
             _campButton = AddButton(middle, "야영 (장작 1 + 식량)", () => CampClicked?.Invoke());
             AddButton(middle, "후퇴 (마을로)", () => RetreatClicked?.Invoke());
+            AddButton(middle, "저장", () => SaveClicked?.Invoke());
             _message = Factory.CreateText(middle, "Message", UiTheme.SmallFontSize, TextAnchor.MiddleLeft, 80f);
 
             var right = Column(root, "Party", 0.71f, 0.99f, 0.02f, 0.98f);

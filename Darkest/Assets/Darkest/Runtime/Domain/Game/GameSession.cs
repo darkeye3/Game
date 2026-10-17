@@ -41,6 +41,7 @@ namespace Darkest.Domain.Game
         private readonly DungeonGenerator _dungeonGenerator;
         private readonly CombatantFactory _factory;
         private readonly SaveMapper _saveMapper;
+        private readonly ExpeditionSaveMapper _expeditionSaveMapper;
         private readonly BattleServices _battleServices;
 
         private GameSession(GameConfig config, IContentCatalog catalog, IRandom random, IEventBus events,
@@ -55,6 +56,7 @@ namespace Darkest.Domain.Game
             Stress = new StressService(config.Stress, catalog.Afflictions, catalog.Virtues, random, events, _logger);
             _factory = new CombatantFactory(catalog, new SequentialIdGenerator(), config.Stress.MaxStress);
             _saveMapper = new SaveMapper(catalog, _factory, Stress, _logger);
+            _expeditionSaveMapper = new ExpeditionSaveMapper(config.Expedition, config.Combat, Stress, catalog, random, events, _logger);
             _dungeonGenerator = new DungeonGenerator(catalog, config.Dungeon);
             _battleServices = new BattleServices(random, events, _logger, config.Combat, Stress);
 
@@ -62,6 +64,7 @@ namespace Darkest.Domain.Game
             TownService = new TownService(town, config.Town, Stress, _factory, random, events);
             if (save == null) TownService.SetupNewGame();
             else TownService.RefreshRecruits();
+            if (save?.Expedition != null) ResumeExpedition(save.Expedition);
 
             _logger.Info(LogCategory, (save == null ? "새 게임" : "불러오기") + " seed=" + random.Seed);
         }
@@ -164,11 +167,23 @@ namespace Darkest.Domain.Game
             SetMode(GameMode.Town);
         }
 
+        /// <summary>마을, 또는 탐험 중(전투/결과 화면 제외)에 저장할 수 있다.</summary>
+        public bool CanSave => Mode == GameMode.Town || (Mode == GameMode.Exploring && Expedition.Phase == ExpeditionPhase.Exploring);
+
         public GameSaveData CaptureSave()
         {
-            // 탐험/전투 중 저장은 MVP 범위 밖: 마을 상태만 저장한다.
-            Guard.That(Mode == GameMode.Town, "마을에서만 저장할 수 있습니다.");
-            return _saveMapper.Capture(Town);
+            Guard.That(CanSave, "지금은 저장할 수 없습니다: " + Mode);
+            var data = _saveMapper.Capture(Town);
+            if (Mode == GameMode.Exploring) data.Expedition = ExpeditionSaveMapper.Capture(Expedition);
+            return data;
+        }
+
+        private void ResumeExpedition(ExpeditionSaveData saved)
+        {
+            Expedition = _expeditionSaveMapper.Restore(saved, Town);
+            if (Expedition == null) return; // 복원 실패는 매퍼가 로그를 남겼다. 마을에서 시작.
+            Mode = GameMode.Exploring; // 생성 중이라 구독자가 없다. 화면은 부트스트랩이 Mode를 보고 연다.
+            _logger.Info(LogCategory, "원정 이어하기: 방 " + Expedition.CurrentRoomId + ", 이동 " + Expedition.StepsTaken + "칸");
         }
 
         private void AfterExpeditionAction()

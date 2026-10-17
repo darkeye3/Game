@@ -69,6 +69,22 @@ namespace Darkest.Domain.Dungeon
         /// <summary>InBattle일 때 싸워야 할 몬스터 편성.</summary>
         public MonsterGroupDefinition PendingEncounter { get; private set; }
 
+        /// <summary>
+        /// 세이브 복원 전용: 생성자가 만든 초기 상태 위에 저장된 진행도를 덮어쓴다.
+        /// embarked에는 이미 사망한 영웅도 포함된다(마을 귀환 시 명부 정리에 필요).
+        /// </summary>
+        internal void RestoreProgress(IReadOnlyList<Hero> embarked, int currentRoomId, int stepsTaken, int light)
+        {
+            Guard.That(Phase == ExpeditionPhase.Exploring && StepsTaken == 0, "새로 만든 원정에만 진행도를 복원할 수 있습니다.");
+            Map.Get(currentRoomId); // 존재하지 않는 방이면 여기서 KeyNotFoundException
+            _embarked.Clear();
+            _embarked.AddRange(embarked);
+            CurrentRoomId = currentRoomId;
+            StepsTaken = stepsTaken;
+            Light.Change(light - Light.Value);
+            CollectFallen();
+        }
+
         /// <returns>실패 사유, 성공 시 null</returns>
         public string TryMoveTo(int roomId)
         {

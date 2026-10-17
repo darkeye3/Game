@@ -62,9 +62,9 @@ namespace Darkest.Domain.Dungeon
         }
 
         /// <summary>손으로 짠 맵(튜토리얼, 테스트, 에디터 툴)용 생성 경로.</summary>
-        public static DungeonMap FromLayout(List<Room> rooms, IReadOnlyList<(int a, int b)> links, int entranceId, int bossRoomId)
+        public static DungeonMap FromLayout(List<Room> rooms, IReadOnlyList<(int a, int b)> links, int entranceId, int bossRoomId, int seed = 0)
         {
-            var map = new DungeonMap(rooms, entranceId, bossRoomId, 0);
+            var map = new DungeonMap(rooms, entranceId, bossRoomId, seed);
             for (int i = 0; i < links.Count; i++) map.Get(links[i].a).Connect(map.Get(links[i].b));
             return map;
         }

@@ -1,6 +1,7 @@
 using System.Text;
 using Darkest.Domain.Dungeon;
 using Darkest.Domain.Game;
+using Darkest.Domain.Save;
 using Darkest.Unity.Presentation.Views;
 
 namespace Darkest.Unity.Presentation.Presenters
@@ -9,12 +10,15 @@ namespace Darkest.Unity.Presentation.Presenters
     {
         private readonly GameSession _session;
         private readonly DungeonView _view;
+        private readonly SaveGateway _saves;
         private readonly StringBuilder _sb = new StringBuilder();
 
-        public DungeonPresenter(GameSession session, DungeonView view)
+        public DungeonPresenter(GameSession session, DungeonView view, SaveGateway saves)
         {
             _session = session;
             _view = view;
+            _saves = saves;
+            _view.SaveClicked += OnSave;
             _view.TorchClicked += OnTorch;
             _view.CurioClicked += OnCurio;
             _view.RetreatClicked += OnRetreat;
@@ -83,6 +87,12 @@ namespace Darkest.Unity.Presentation.Presenters
         private void OnRetreat() => _session.Retreat();
         private void OnCamp() => After(_session.TryCamp());
 
+        private void OnSave()
+        {
+            string error = _session.CanSave ? _saves.TrySave(_session.CaptureSave()) : "지금은 저장할 수 없습니다.";
+            _view.SetMessage(error ?? "저장했습니다. 다음 실행 때 이 방에서 이어집니다.");
+        }
+
         private void After(string error)
         {
             if (_session.Mode != GameMode.Exploring) return; // 전투/결과 화면으로 전환됨
@@ -96,6 +106,7 @@ namespace Darkest.Unity.Presentation.Presenters
             _view.CurioClicked -= OnCurio;
             _view.RetreatClicked -= OnRetreat;
             _view.CampClicked -= OnCamp;
+            _view.SaveClicked -= OnSave;
         }
     }
 }

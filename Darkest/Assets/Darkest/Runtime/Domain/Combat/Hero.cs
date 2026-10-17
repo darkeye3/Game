@@ -24,6 +24,12 @@ namespace Darkest.Domain.Combat
         public StressMeter Stress { get; }
         public bool IsAtDeathsDoor { get; private set; }
 
+        /// <summary>세이브 복원 전용. HP 0인 생존 영웅만 죽음의 문턱으로 되돌린다.</summary>
+        internal void RestoreDeathsDoor()
+        {
+            if (!IsDead && CurrentHp == 0) IsAtDeathsDoor = true;
+        }
+
         /// <summary>스트레스 최대치 도달(심장마비). 문턱이 아니면 문턱으로, 이미 문턱이면 사망.</summary>
         public DamageOutcome SufferHeartAttack()
         {

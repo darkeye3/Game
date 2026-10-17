@@ -7,7 +7,7 @@ using Darkest.Domain.Stress;
 
 namespace Darkest.Domain.Save
 {
-    /// <summary>런타임 상태 ↔ 세이브 DTO 변환. 저장 범위(MVP): 마을 골드/주차/영웅 명부.</summary>
+    /// <summary>런타임 상태 ↔ 세이브 DTO 변환(마을 골드/주차/영웅 명부). 원정 진행도는 ExpeditionSaveMapper가 맡는다.</summary>
     public sealed class SaveMapper
     {
         private readonly IContentCatalog _catalog;
@@ -53,7 +53,9 @@ namespace Darkest.Domain.Save
             Name = hero.DisplayName,
             Hp = hero.CurrentHp,
             Stress = hero.Stress.Current,
-            ResolveId = hero.Stress.Resolve?.Id ?? string.Empty
+            ResolveId = hero.Stress.Resolve?.Id ?? string.Empty,
+            IsDead = hero.IsDead,
+            IsAtDeathsDoor = hero.IsAtDeathsDoor
         };
 
         private Hero RestoreHero(HeroSaveData saved)
@@ -72,6 +74,8 @@ namespace Darkest.Domain.Save
             var hero = _factory.CreateHero(heroClass, saved.Name, saved.Id);
             hero.RestoreHp(saved.Hp);
             _stress.Restore(hero, saved.Stress, _catalog.FindResolve(saved.ResolveId));
+            if (saved.IsDead) hero.RestoreDead();
+            else if (saved.IsAtDeathsDoor) hero.RestoreDeathsDoor();
             return hero;
         }
     }

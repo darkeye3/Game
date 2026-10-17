@@ -82,6 +82,9 @@ namespace Darkest.Domain.Combat
         /// <summary>세이브 복원 전용. 일반 로직에서는 ApplyDamage/Heal만 쓴다.</summary>
         internal void RestoreHp(int hp) => CurrentHp = System.Math.Max(0, System.Math.Min(MaxHp, hp));
 
+        /// <summary>세이브 복원 전용: 원정 중 사망한 영웅을 사망 상태로 되돌린다.</summary>
+        internal void RestoreDead() => Kill();
+
         protected virtual DamageOutcome OnLethalDamage(IRandom random)
         {
             Kill();

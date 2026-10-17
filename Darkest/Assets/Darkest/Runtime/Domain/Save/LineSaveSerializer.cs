@@ -9,7 +9,11 @@ namespace Darkest.Domain.Save
     /// <code>
     /// darkest-save|1
     /// town|gold|week|nextId
-    /// hero|id|classId|name|hp|stress|resolveId
+    /// hero|id|classId|name|hp|stress|resolveId|dead|deathsDoor
+    /// exp|room|steps|light|food|torches|firewood|gold|entrance|boss|seed   (원정 중 저장일 때만)
+    /// party|heroId...        embarked|heroId...
+    /// room|id|type|encounterId|gold|cleared|visited
+    /// link|a|b
     /// </code>
     /// 필드 안의 '|', '\', 줄바꿈은 역슬래시로 이스케이프한다.
     /// </summary>
@@ -26,8 +30,29 @@ namespace Darkest.Domain.Save
             AppendLine(sb, Header, Int(data.Version));
             AppendLine(sb, "town", Int(data.Gold), Int(data.Week), Int(data.NextId));
             foreach (var hero in data.Roster)
-                AppendLine(sb, "hero", hero.Id, hero.ClassId, hero.Name, Int(hero.Hp), Int(hero.Stress), hero.ResolveId ?? string.Empty);
+                AppendLine(sb, "hero", hero.Id, hero.ClassId, hero.Name, Int(hero.Hp), Int(hero.Stress), hero.ResolveId ?? string.Empty,
+                    Bool(hero.IsDead), Bool(hero.IsAtDeathsDoor));
+            if (data.Expedition != null) AppendExpedition(sb, data.Expedition);
             return sb.ToString();
+        }
+
+        private static void AppendExpedition(StringBuilder sb, ExpeditionSaveData e)
+        {
+            AppendLine(sb, "exp", Int(e.CurrentRoomId), Int(e.StepsTaken), Int(e.Light), Int(e.Food), Int(e.Torches),
+                Int(e.Firewood), Int(e.Gold), Int(e.EntranceId), Int(e.BossRoomId), Int(e.MapSeed));
+            AppendIds(sb, "party", e.PartyIds);
+            AppendIds(sb, "embarked", e.EmbarkedIds);
+            foreach (var room in e.Rooms)
+                AppendLine(sb, "room", Int(room.Id), room.Type, room.EncounterId ?? string.Empty, Int(room.Gold), Bool(room.IsCleared), Bool(room.IsVisited));
+            foreach (var link in e.Links) AppendLine(sb, "link", Int(link.A), Int(link.B));
+        }
+
+        private static void AppendIds(StringBuilder sb, string tag, System.Collections.Generic.List<string> ids)
+        {
+            var fields = new string[ids.Count + 1];
+            fields[0] = tag;
+            for (int i = 0; i < ids.Count; i++) fields[i + 1] = ids[i];
+            AppendLine(sb, fields);
         }
 
         public GameSaveData Deserialize(string text)
@@ -61,6 +86,21 @@ namespace Darkest.Domain.Save
                         case "hero":
                             data.Roster.Add(ParseHero(fields));
                             break;
+                        case "exp":
+                            data.Expedition = ParseExpedition(fields);
+                            break;
+                        case "party":
+                            ExpeditionOf(data).PartyIds.AddRange(Tail(fields));
+                            break;
+                        case "embarked":
+                            ExpeditionOf(data).EmbarkedIds.AddRange(Tail(fields));
+                            break;
+                        case "room":
+                            ExpeditionOf(data).Rooms.Add(ParseRoom(fields));
+                            break;
+                        case "link":
+                            ExpeditionOf(data).Links.Add(new RoomLinkSaveData(ParseInt(fields, 1), ParseInt(fields, 2)));
+                            break;
                         default:
                             throw new FormatException("알 수 없는 레코드: " + fields[0]);
                     }
@@ -83,8 +123,54 @@ namespace Darkest.Domain.Save
             Name = fields[3],
             Hp = ParseInt(fields, 4),
             Stress = ParseInt(fields, 5),
-            ResolveId = fields.Length > 6 ? fields[6] : string.Empty
+            ResolveId = fields.Length > 6 ? fields[6] : string.Empty,
+            IsDead = fields.Length > 7 && ParseBool(fields, 7),
+            IsAtDeathsDoor = fields.Length > 8 && ParseBool(fields, 8)
         };
+
+        private static ExpeditionSaveData ParseExpedition(string[] f) => new ExpeditionSaveData
+        {
+            CurrentRoomId = ParseInt(f, 1),
+            StepsTaken = ParseInt(f, 2),
+            Light = ParseInt(f, 3),
+            Food = ParseInt(f, 4),
+            Torches = ParseInt(f, 5),
+            Firewood = ParseInt(f, 6),
+            Gold = ParseInt(f, 7),
+            EntranceId = ParseInt(f, 8),
+            BossRoomId = ParseInt(f, 9),
+            MapSeed = ParseInt(f, 10)
+        };
+
+        private static RoomSaveData ParseRoom(string[] f) => new RoomSaveData
+        {
+            Id = ParseInt(f, 1),
+            Type = f[2],
+            EncounterId = f[3],
+            Gold = ParseInt(f, 4),
+            IsCleared = ParseBool(f, 5),
+            IsVisited = ParseBool(f, 6)
+        };
+
+        /// <summary>원정 세부 줄은 반드시 exp 줄 뒤에 와야 한다.</summary>
+        private static ExpeditionSaveData ExpeditionOf(GameSaveData data) =>
+            data.Expedition ?? throw new FormatException("exp 줄보다 원정 세부 정보가 먼저 나왔습니다.");
+
+        private static string[] Tail(string[] fields)
+        {
+            var tail = new string[fields.Length - 1];
+            Array.Copy(fields, 1, tail, 0, tail.Length);
+            return tail;
+        }
+
+        private static string Bool(bool value) => value ? "1" : "0";
+
+        private static bool ParseBool(string[] fields, int index)
+        {
+            int value = ParseInt(fields, index);
+            if (value != 0 && value != 1) throw new FormatException("0/1이 아님: " + fields[index]);
+            return value == 1;
+        }
 
         private static string Int(int value) => value.ToString(CultureInfo.InvariantCulture);
 

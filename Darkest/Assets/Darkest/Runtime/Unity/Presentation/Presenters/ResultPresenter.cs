@@ -1,6 +1,7 @@
 using System.Text;
 using Darkest.Domain.Dungeon;
 using Darkest.Domain.Game;
+using Darkest.Domain.Save;
 using Darkest.Unity.Presentation.Views;
 
 namespace Darkest.Unity.Presentation.Presenters
@@ -9,11 +10,13 @@ namespace Darkest.Unity.Presentation.Presenters
     {
         private readonly GameSession _session;
         private readonly ResultView _view;
+        private readonly SaveGateway _saves;
 
-        public ResultPresenter(GameSession session, ResultView view)
+        public ResultPresenter(GameSession session, ResultView view, SaveGateway saves)
         {
             _session = session;
             _view = view;
+            _saves = saves;
             _view.ReturnClicked += OnReturn;
         }
 
@@ -49,7 +52,15 @@ namespace Darkest.Unity.Presentation.Presenters
             }
         }
 
-        private void OnReturn() => _session.ReturnToTown();
+        /// <summary>
+        /// 귀환하면 자동 저장한다. 원정 중 저장이 남아 있으면 다음 실행 때 이미 끝난 원정이 다시 열리기 때문.
+        /// 실패해도 귀환은 진행하고, 원인은 SaveGateway가 로그로 남긴다.
+        /// </summary>
+        private void OnReturn()
+        {
+            _session.ReturnToTown();
+            if (_session.CanSave) _saves.TrySave(_session.CaptureSave());
+        }
 
         public void Dispose() => _view.ReturnClicked -= OnReturn;
     }
