@@ -24,6 +24,8 @@ namespace Darkest.Unity.Presentation
             stageGo.transform.SetParent(root, false);
             Stage = stageGo.AddComponent<BattleStageView>();
             Stage.Initialize(sprites, Ui.Font);
+            Animations = stageGo.AddComponent<BattleAnimationPlayer>();
+            Animations.Initialize(Stage, Ui.Font);
 
             var canvas = Ui.CreateCanvas("DarkestCanvas");
             canvas.transform.SetParent(root, false);
@@ -40,6 +42,7 @@ namespace Darkest.Unity.Presentation
 
         public UiFactory Ui { get; }
         public BattleStageView Stage { get; }
+        public BattleAnimationPlayer Animations { get; }
         public TownView Town { get; }
         public DungeonView Dungeon { get; }
         public BattleView Battle { get; }

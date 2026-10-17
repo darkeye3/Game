@@ -14,6 +14,9 @@ namespace Darkest.Unity.Presentation.Views
 
         public string CombatantId { get; private set; }
 
+        /// <summary>진형 슬롯 위치. 연출(흔들림)은 이 위치 기준 오프셋으로만 움직인다.</summary>
+        public Vector3 SlotPosition { get; private set; }
+
         public static UnitView Create(Transform parent, Font font)
         {
             var go = new GameObject("Unit");
@@ -34,9 +37,11 @@ namespace Darkest.Unity.Presentation.Views
             return view;
         }
 
-        public void Bind(string combatantId, Sprite sprite, bool faceLeft)
+        public void Bind(string combatantId, Sprite sprite, bool faceLeft, Vector3 slotPosition)
         {
             CombatantId = combatantId;
+            SlotPosition = slotPosition;
+            transform.localPosition = slotPosition;
             _renderer.sprite = sprite;
             _renderer.flipX = faceLeft;
             gameObject.SetActive(true);
@@ -52,6 +57,8 @@ namespace Darkest.Unity.Presentation.Views
         {
             _renderer.color = active ? highlight : Color.white;
         }
+
+        public void SetOffset(Vector3 offset) => transform.localPosition = SlotPosition + offset;
 
         public void Release()
         {

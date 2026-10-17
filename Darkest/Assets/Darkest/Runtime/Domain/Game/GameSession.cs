@@ -83,13 +83,13 @@ namespace Darkest.Domain.Game
         public BattleSession Battle { get; private set; }
         public int Seed => _random.Seed;
 
-        public string TryEmbark(IReadOnlyList<Hero> party, int food, int torches)
+        public string TryEmbark(IReadOnlyList<Hero> party, Provisions provisions)
         {
             if (Mode != GameMode.Town) return "마을에서만 출발할 수 있습니다.";
             string error = ValidateParty(party);
             if (error != null) return error;
 
-            error = TownService.TryBuyProvisions(food, torches, out var inventory);
+            error = TownService.TryBuyProvisions(provisions, out var inventory);
             if (error != null) return error;
 
             var formation = new Formation(Team.Heroes);
@@ -118,6 +118,8 @@ namespace Darkest.Domain.Game
         }
 
         public string TryUseTorch() => Mode == GameMode.Exploring ? Expedition.TryUseTorch() : "탐험 중이 아닙니다.";
+
+        public string TryCamp() => Mode == GameMode.Exploring ? Expedition.TryCamp() : "탐험 중이 아닙니다.";
 
         public void Retreat()
         {
@@ -158,6 +160,7 @@ namespace Darkest.Domain.Game
         private void StartBattle()
         {
             var monsters = _factory.CreateMonsterFormation(Expedition.PendingEncounter);
+            Expedition.ApplyLightToMonsters(monsters);
             Battle = new BattleSession(Expedition.Party, monsters, _battleServices);
             Battle.Start();
             // 첫 영웅 차례까지 진행된 뒤에 화면을 바꿔야 UI가 올바른 행동자를 그린다.

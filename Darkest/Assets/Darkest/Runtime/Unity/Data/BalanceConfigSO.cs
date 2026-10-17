@@ -50,6 +50,12 @@ namespace Darkest.Unity.Data
             [SerializeField, Min(0)] internal int hungerStepInterval = 8;
             [SerializeField] internal int hungerStress = 15;
             [SerializeField] internal int hungerDamage = 3;
+            [SerializeField, Min(0)] internal int campFoodPerHero = 1;
+            [SerializeField, Range(0, 100)] internal int campHealPercent = 35;
+            [SerializeField, Min(0)] internal int campStressRelief = 20;
+            [SerializeField, Tooltip("밝음/흐림/어둑/암흑")] internal int[] monsterAccuracyBonusByLight = { 0, 3, 6, 10 };
+            [SerializeField, Tooltip("밝음/흐림/어둑/암흑")] internal int[] monsterCritBonusByLight = { 0, 1, 3, 5 };
+            [SerializeField, Tooltip("밝음/흐림/어둑/암흑 (%)")] internal int[] lootBonusPercentByLight = { 0, 10, 25, 50 };
         }
 
         [Serializable]
@@ -62,6 +68,7 @@ namespace Darkest.Unity.Data
             [SerializeField, Min(0)] internal int tavernStressRelief = 45;
             [SerializeField, Min(0)] internal int foodPrice = 25;
             [SerializeField, Min(0)] internal int torchPrice = 40;
+            [SerializeField, Min(0)] internal int firewoodPrice = 75;
         }
 
         // 섹션 필드는 internal + [SerializeField]: 인스펙터에는 보이고, 어셈블리 밖에서는 CreateConfig()로만 읽힌다.
@@ -94,11 +101,16 @@ namespace Darkest.Unity.Data
             e.CorridorSteps = dungeon.corridorSteps; e.LightDecayPerStep = dungeon.lightDecayPerStep;
             e.TorchLightRestore = dungeon.torchLightRestore; e.HungerStepInterval = dungeon.hungerStepInterval;
             e.HungerStress = dungeon.hungerStress; e.HungerDamage = dungeon.hungerDamage;
+            e.CampFoodPerHero = dungeon.campFoodPerHero; e.CampHealPercent = dungeon.campHealPercent;
+            e.CampStressRelief = dungeon.campStressRelief;
+            e.MonsterAccuracyBonusByLight = (int[])dungeon.monsterAccuracyBonusByLight.Clone();
+            e.MonsterCritBonusByLight = (int[])dungeon.monsterCritBonusByLight.Clone();
+            e.LootBonusPercentByLight = (int[])dungeon.lootBonusPercentByLight.Clone();
 
             var t = config.Town;
             t.StartingGold = town.startingGold; t.StartingHeroes = town.startingHeroes; t.RecruitCost = town.recruitCost;
             t.TavernCost = town.tavernCost; t.TavernStressRelief = town.tavernStressRelief;
-            t.FoodPrice = town.foodPrice; t.TorchPrice = town.torchPrice;
+            t.FoodPrice = town.foodPrice; t.TorchPrice = town.torchPrice; t.FirewoodPrice = town.firewoodPrice;
 
             return config;
         }

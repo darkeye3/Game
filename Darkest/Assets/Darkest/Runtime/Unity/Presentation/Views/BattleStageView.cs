@@ -27,6 +27,8 @@ namespace Darkest.Unity.Presentation.Views
 
         private readonly List<UnitView> _pool = new List<UnitView>();
         private readonly List<UnitView> _active = new List<UnitView>();
+        private readonly Dictionary<string, UnitView> _byId = new Dictionary<string, UnitView>();
+        private readonly Dictionary<string, Vector3> _lastSlotById = new Dictionary<string, Vector3>();
         private ISpriteProvider _sprites;
         private Font _font;
 
@@ -55,9 +57,16 @@ namespace Darkest.Unity.Presentation.Views
         public void Clear()
         {
             ReleaseAll();
+            _lastSlotById.Clear();
             _hasCurrentActor = false;
             _targetPositions.Clear();
         }
+
+        /// <summary>연출용: 현재 그려진 유닛.</summary>
+        public bool TryGetUnit(string combatantId, out UnitView view) => _byId.TryGetValue(combatantId, out view);
+
+        /// <summary>연출용: 마지막으로 그려졌던 슬롯 위치(이미 사망해 사라진 유닛도 포함).</summary>
+        public bool TryGetLastSlot(string combatantId, out Vector3 position) => _lastSlotById.TryGetValue(combatantId, out position);
 
         public static Vector3 SlotPosition(Team team, int rank)
         {
@@ -72,8 +81,9 @@ namespace Darkest.Unity.Presentation.Views
                 var combatant = formation.Members[i];
                 var view = Acquire();
                 var position = SlotPosition(formation.Team, i + 1);
-                view.transform.localPosition = position;
-                view.Bind(combatant.Id, _sprites.Get(combatant.PortraitKey), side > 0f);
+                view.Bind(combatant.Id, _sprites.Get(combatant.PortraitKey), side > 0f, position);
+                _byId[combatant.Id] = view;
+                _lastSlotById[combatant.Id] = position;
 
                 bool isCurrent = combatant == context.CurrentActor;
                 view.SetHighlight(isCurrent, CurrentActorTint);
@@ -123,6 +133,7 @@ namespace Darkest.Unity.Presentation.Views
                 _pool.Add(_active[i]);
             }
             _active.Clear();
+            _byId.Clear();
         }
 
         private void OnDrawGizmos()

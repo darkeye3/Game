@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using Darkest.Domain.Combat;
 using Darkest.Domain.Combat.Stats;
+using Darkest.Domain.Dungeon;
 using Darkest.Domain.Game;
 using Darkest.Domain.Save;
 using Darkest.Unity.Presentation.Views;
@@ -11,8 +12,7 @@ namespace Darkest.Unity.Presentation.Presenters
 {
     public sealed class TownPresenter : IScreenPresenter
     {
-        private const int DefaultFood = 8;
-        private const int DefaultTorches = 6;
+        private static readonly Provisions DefaultProvisions = new Provisions(food: 8, torches: 6, firewood: 1);
 
         private readonly GameSession _session;
         private readonly TownView _view;
@@ -21,8 +21,7 @@ namespace Darkest.Unity.Presentation.Presenters
         private readonly List<Hero> _party = new List<Hero>(Formation.MaxRanks);
         private readonly StringBuilder _sb = new StringBuilder();
         private Hero _selected;
-        private int _food = DefaultFood;
-        private int _torches = DefaultTorches;
+        private Provisions _provisions = DefaultProvisions;
 
         public TownPresenter(GameSession session, TownView view, SaveGateway saves, Action newGameRequested)
         {
@@ -38,6 +37,7 @@ namespace Darkest.Unity.Presentation.Presenters
             _view.NewGameClicked += OnNewGame;
             _view.FoodChanged += OnFoodChanged;
             _view.TorchChanged += OnTorchChanged;
+            _view.FirewoodChanged += OnFirewoodChanged;
         }
 
         public GameMode Mode => GameMode.Town;
@@ -79,7 +79,8 @@ namespace Darkest.Unity.Presentation.Presenters
             _view.Recruits.End();
 
             _view.SetDetails(DescribeSelected());
-            _view.SetSupplies("식량 " + _food + "  횃불 " + _torches + "\n비용 " + _session.TownService.ProvisionCost(_food, _torches) + "G");
+            _view.SetSupplies("식량 " + _provisions.Food + "  횃불 " + _provisions.Torches + "  장작 " + _provisions.Firewood
+                              + "\n비용 " + _session.TownService.ProvisionCost(_provisions) + "G");
         }
 
         private string DescribeSelected()
@@ -125,15 +126,21 @@ namespace Darkest.Unity.Presentation.Presenters
             Show(_session.TownService.TryDismiss(hero), hero.DisplayName + " 해고");
         }
 
-        private void OnEmbark() => Show(_session.TryEmbark(_party, _food, _torches), null);
+        private void OnEmbark() => Show(_session.TryEmbark(_party, _provisions), null);
 
         private void OnSave() => Show(_saves.TrySave(_session.CaptureSave()), "저장했습니다.");
 
         private void OnNewGame() => _newGameRequested?.Invoke();
 
-        private void OnFoodChanged(int delta) { _food = Math.Max(0, _food + delta); Render(); }
+        private void OnFoodChanged(int delta) => SetProvisions(_provisions.WithFood(Math.Max(0, _provisions.Food + delta)));
+        private void OnTorchChanged(int delta) => SetProvisions(_provisions.WithTorches(Math.Max(0, _provisions.Torches + delta)));
+        private void OnFirewoodChanged(int delta) => SetProvisions(_provisions.WithFirewood(Math.Max(0, _provisions.Firewood + delta)));
 
-        private void OnTorchChanged(int delta) { _torches = Math.Max(0, _torches + delta); Render(); }
+        private void SetProvisions(Provisions provisions)
+        {
+            _provisions = provisions;
+            Render();
+        }
 
         /// <summary>결과 표시 + 다시 그리기. error가 null이면 성공 메시지.</summary>
         private void Show(string error, string successMessage)
@@ -152,6 +159,7 @@ namespace Darkest.Unity.Presentation.Presenters
             _view.NewGameClicked -= OnNewGame;
             _view.FoodChanged -= OnFoodChanged;
             _view.TorchChanged -= OnTorchChanged;
+            _view.FirewoodChanged -= OnFirewoodChanged;
         }
     }
 }

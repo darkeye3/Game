@@ -37,6 +37,7 @@ namespace Darkest.Unity.Presentation.Presenters
             On<HungerChecked>(events, e => e.HadFood ? "식량 1개 소모" : "식량이 없다! 파티가 굶주린다");
             On<LootGained>(events, e => "골드 +" + e.Gold + " (" + e.Source + ")");
             On<CurioResolved>(events, e => e.Curio.DisplayName + ": " + e.Outcome.Description);
+            On<CampMade>(events, e => "야영: 파티 HP +" + e.HealedTotal + ", 스트레스 -" + e.StressRelief + " (장작불이 꺼지며 어두워졌다)");
         }
 
         private void On<T>(IEventBus events, Func<T, string> format) where T : IDomainEvent

@@ -14,10 +14,12 @@ namespace Darkest.Unity.Presentation.Views
         private Text _message;
         private PooledButtonList _exits;
         private Button _curioButton;
+        private Button _campButton;
 
         public event Action TorchClicked;
         public event Action CurioClicked;
         public event Action RetreatClicked;
+        public event Action CampClicked;
 
         public PooledButtonList Exits => _exits;
 
@@ -32,6 +34,7 @@ namespace Darkest.Unity.Presentation.Views
             _exits = new PooledButtonList(Factory, Factory.CreateVertical(middle, "Exits"));
             AddButton(middle, "횃불 사용", () => TorchClicked?.Invoke());
             _curioButton = AddButton(middle, "골동품 조사", () => CurioClicked?.Invoke());
+            _campButton = AddButton(middle, "야영 (장작 1 + 식량)", () => CampClicked?.Invoke());
             AddButton(middle, "후퇴 (마을로)", () => RetreatClicked?.Invoke());
             _message = Factory.CreateText(middle, "Message", UiTheme.SmallFontSize, TextAnchor.MiddleLeft, 80f);
 
@@ -44,5 +47,6 @@ namespace Darkest.Unity.Presentation.Views
         public void SetParty(string text) => _party.text = text;
         public void SetMessage(string text) => _message.text = text;
         public void SetCurioAvailable(bool available) => _curioButton.interactable = available;
+        public void SetCampAvailable(bool available) => _campButton.interactable = available;
     }
 }

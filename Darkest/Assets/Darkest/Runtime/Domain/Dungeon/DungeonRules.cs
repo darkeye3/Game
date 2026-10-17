@@ -41,5 +41,19 @@ namespace Darkest.Domain.Dungeon
         public int HungerStepInterval { get; set; } = 8;
         public int HungerStress { get; set; } = 15;
         public int HungerDamage { get; set; } = 3;
+
+        // ── 빛에 따른 전투/보상 보정 (밝음, 흐림, 어둑, 암흑 순) ──
+        public int[] MonsterAccuracyBonusByLight { get; set; } = { 0, 3, 6, 10 };
+        public int[] MonsterCritBonusByLight { get; set; } = { 0, 1, 3, 5 };
+        public int[] LootBonusPercentByLight { get; set; } = { 0, 10, 25, 50 };
+
+        // ── 야영 ──
+        /// <summary>야영 1회에 파티원 1명당 필요한 식량.</summary>
+        public int CampFoodPerHero { get; set; } = 1;
+        /// <summary>최대 HP 대비 회복 비율(%).</summary>
+        public int CampHealPercent { get; set; } = 35;
+        public int CampStressRelief { get; set; } = 20;
+        /// <summary>야영 후 빛 수치(장작불이 꺼지며 어두워짐을 표현).</summary>
+        public int LightAfterCamp { get; set; } = 50;
     }
 }

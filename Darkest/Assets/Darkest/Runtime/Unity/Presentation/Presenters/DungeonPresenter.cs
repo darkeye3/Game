@@ -18,6 +18,7 @@ namespace Darkest.Unity.Presentation.Presenters
             _view.TorchClicked += OnTorch;
             _view.CurioClicked += OnCurio;
             _view.RetreatClicked += OnRetreat;
+            _view.CampClicked += OnCamp;
         }
 
         public GameMode Mode => GameMode.Exploring;
@@ -36,13 +37,14 @@ namespace Darkest.Unity.Presentation.Presenters
             if (expedition == null) return;
 
             _view.SetHeader("빛 " + expedition.Light.Value + " (" + TextFormat.LightName(expedition.Light.Level) + ")"
-                            + "   식량 " + expedition.Inventory.Food + "   횃불 " + expedition.Inventory.Torches
+                            + "   식량 " + expedition.Inventory.Food + "   횃불 " + expedition.Inventory.Torches + "   장작 " + expedition.Inventory.Firewood
                             + "\n전리품 " + expedition.Inventory.Gold + "G   이동 " + expedition.StepsTaken + "칸   seed " + expedition.Map.Seed);
             _view.SetMap(DescribeMap(expedition));
             _view.SetParty(TextFormat.Formation(expedition.Party));
 
             var room = expedition.CurrentRoom;
             _view.SetCurioAvailable(room.Type == RoomType.Curio && !room.IsCleared);
+            _view.SetCampAvailable(room.IsCleared && expedition.Inventory.Firewood > 0);
 
             _view.Exits.Begin();
             for (int i = 0; i < room.Neighbors.Count; i++)
@@ -79,6 +81,7 @@ namespace Darkest.Unity.Presentation.Presenters
         private void OnTorch() => After(_session.TryUseTorch());
         private void OnCurio() => After(_session.TryInteractCurio());
         private void OnRetreat() => _session.Retreat();
+        private void OnCamp() => After(_session.TryCamp());
 
         private void After(string error)
         {
@@ -92,6 +95,7 @@ namespace Darkest.Unity.Presentation.Presenters
             _view.TorchClicked -= OnTorch;
             _view.CurioClicked -= OnCurio;
             _view.RetreatClicked -= OnRetreat;
+            _view.CampClicked -= OnCamp;
         }
     }
 }

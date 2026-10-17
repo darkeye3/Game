@@ -137,10 +137,18 @@ namespace Darkest.Unity.Presentation.Ui
             return rect;
         }
 
+        /// <summary>
+        /// Input System 패키지가 설치돼 있으면(asmdef versionDefines → DARKEST_INPUT_SYSTEM) 새 입력 모듈,
+        /// 없으면 구 Input Manager 모듈을 쓴다. 프로젝트 입력 설정과 상관없이 클릭이 동작하게 하기 위함.
+        /// </summary>
         private static void EnsureEventSystem()
         {
             if (Object.FindFirstObjectByType<EventSystem>() != null) return;
+#if DARKEST_INPUT_SYSTEM
+            new GameObject("EventSystem", typeof(EventSystem), typeof(UnityEngine.InputSystem.UI.InputSystemUIInputModule));
+#else
             new GameObject("EventSystem", typeof(EventSystem), typeof(StandaloneInputModule));
+#endif
         }
     }
 }

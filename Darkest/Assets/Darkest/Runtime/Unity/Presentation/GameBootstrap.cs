@@ -37,6 +37,7 @@ namespace Darkest.Unity.Presentation
         private SaveGateway _saves;
         private ScreenRouter _router;
         private EventLogPresenter _logPresenter;
+        private BattleAnimationPresenter _animationPresenter;
 
         public GameSession Session { get; private set; }
 
@@ -68,10 +69,11 @@ namespace Darkest.Unity.Presentation
 
             _scaffold.Log.Clear();
             _logPresenter = new EventLogPresenter(events, _scaffold.Log);
+            _animationPresenter = new BattleAnimationPresenter(events, _scaffold.Animations);
             _router = new ScreenRouter(events, _logger);
             _router.Register(_scaffold.Town, new TownPresenter(Session, _scaffold.Town, _saves, OnNewGameRequested));
             _router.Register(_scaffold.Dungeon, new DungeonPresenter(Session, _scaffold.Dungeon));
-            _router.Register(_scaffold.Battle, new BattlePresenter(Session, _scaffold.Battle, _scaffold.Stage));
+            _router.Register(_scaffold.Battle, new BattlePresenter(Session, _scaffold.Battle, _scaffold.Stage, _animationPresenter));
             _router.Register(_scaffold.Result, new ResultPresenter(Session, _scaffold.Result));
             _router.Show(Session.Mode);
 
@@ -99,8 +101,10 @@ namespace Darkest.Unity.Presentation
         {
             _router?.Dispose();
             _logPresenter?.Dispose();
+            _animationPresenter?.Dispose();
             _router = null;
             _logPresenter = null;
+            _animationPresenter = null;
             Session = null;
         }
 

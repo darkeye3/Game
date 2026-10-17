@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Darkest.Domain.Combat;
 using Darkest.Domain.Combat.AI;
@@ -18,16 +19,20 @@ namespace Darkest.Unity.Presentation.Presenters
         private readonly GameSession _session;
         private readonly BattleView _view;
         private readonly BattleStageView _stage;
+        private readonly BattleAnimationPresenter _animations;
+        private readonly Action _renderAction;
         private readonly IEnemyAI _autoPilot = new RandomEnemyAI();
         private readonly List<Combatant> _targets = new List<Combatant>(Formation.MaxRanks);
         private readonly List<Combatant> _scratch = new List<Combatant>(Formation.MaxRanks);
         private SkillDefinition _selectedSkill;
 
-        public BattlePresenter(GameSession session, BattleView view, BattleStageView stage)
+        public BattlePresenter(GameSession session, BattleView view, BattleStageView stage, BattleAnimationPresenter animations)
         {
             _session = session;
             _view = view;
             _stage = stage;
+            _animations = animations;
+            _renderAction = Render; // 콜백 델리게이트를 매번 새로 만들지 않도록 캐시
             _view.ForwardClicked += OnForward;
             _view.BackwardClicked += OnBackward;
             _view.PassClicked += OnPass;
@@ -41,9 +46,14 @@ namespace Darkest.Unity.Presentation.Presenters
             ClearSelection();
             _view.SetMessage(string.Empty);
             Render();
+            _animations.Play(_renderAction); // 화면 진입 전 몬스터 선공 등 쌓인 연출 재생
         }
 
-        public void Exit() => _stage.Clear();
+        public void Exit()
+        {
+            _animations.Stop();
+            _stage.Clear();
+        }
 
         private BattleContext Context => _session.Battle?.Context;
 
@@ -97,6 +107,7 @@ namespace Darkest.Unity.Presentation.Presenters
 
         private void OnSkillSelected(SkillDefinition skill)
         {
+            if (_animations.IsPlaying) return;
             var actor = _session.Battle.CurrentActor;
             _selectedSkill = skill;
             SkillTargeting.CollectValidTargets(Context, actor, skill, _targets);
@@ -115,20 +126,26 @@ namespace Darkest.Unity.Presentation.Presenters
         private void OnPass() => SubmitIfHeroTurn(actor => new PassCommand(actor));
         private void OnAuto() => SubmitIfHeroTurn(actor => _autoPilot.Decide(Context, actor));
 
-        private void SubmitIfHeroTurn(System.Func<Combatant, IBattleCommand> build)
+        private void SubmitIfHeroTurn(Func<Combatant, IBattleCommand> build)
         {
             var battle = _session.Battle;
-            if (battle == null || !battle.IsAwaitingHeroCommand) return;
+            if (battle == null || !battle.IsAwaitingHeroCommand || _animations.IsPlaying) return;
             Submit(build(battle.CurrentActor));
         }
 
         private void Submit(IBattleCommand command)
         {
+            if (_animations.IsPlaying) return; // 연출 중 입력 무시
             string error = _session.SubmitBattleCommand(command);
             if (_session.Mode != GameMode.Battle) return; // 전투 종료 → 라우터가 화면 전환
             ClearSelection();
             _view.SetMessage(error ?? string.Empty);
-            Render();
+            if (error != null) { Render(); return; }
+
+            // 연출이 끝난 뒤에 화면을 갱신해야 쓰러진 유닛/이동이 연출 후에 반영된다.
+            _view.Skills.Begin(); _view.Skills.End();
+            _view.Targets.Begin(); _view.Targets.End();
+            _animations.Play(_renderAction);
         }
 
         private void ClearSelection()

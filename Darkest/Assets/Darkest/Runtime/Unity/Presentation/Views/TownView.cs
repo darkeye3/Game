@@ -22,6 +22,7 @@ namespace Darkest.Unity.Presentation.Views
         public event Action NewGameClicked;
         public event Action<int> FoodChanged;
         public event Action<int> TorchChanged;
+        public event Action<int> FirewoodChanged;
 
         public PooledButtonList Roster => _roster;
         public PooledButtonList Recruits => _recruits;
@@ -49,6 +50,9 @@ namespace Darkest.Unity.Presentation.Views
             var torchRow = Factory.CreateHorizontal(right, "TorchRow");
             AddButton(torchRow, "횃불 -", () => TorchChanged?.Invoke(-1));
             AddButton(torchRow, "횃불 +", () => TorchChanged?.Invoke(1));
+            var woodRow = Factory.CreateHorizontal(right, "FirewoodRow");
+            AddButton(woodRow, "장작 -", () => FirewoodChanged?.Invoke(-1));
+            AddButton(woodRow, "장작 +", () => FirewoodChanged?.Invoke(1));
             AddButton(right, "▶ 던전 출발", () => EmbarkClicked?.Invoke());
             var saveRow = Factory.CreateHorizontal(right, "SaveRow");
             AddButton(saveRow, "저장", () => SaveClicked?.Invoke());

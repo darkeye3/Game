@@ -11,18 +11,20 @@
 ### 가정 (Assumptions)
 - 아트/사운드는 더미. `Resources/Darkest/Placeholders/*.png`를 같은 이름으로 덮어쓰면 교체된다.
 - UI는 프리팹 없이 코드로 생성(uGUI + 내장 `LegacyRuntime.ttf`). 씬에는 `GameBootstrap` 하나만 있으면 된다.
-- 입력은 구 Input Manager(`StandaloneInputModule`) 기준. (주의점 1 참고)
+- 입력: Input System 패키지가 있으면 `InputSystemUIInputModule`, 없으면 `StandaloneInputModule`을 자동 선택(asmdef versionDefines).
 - 저장은 **마을에서만**(탐험/전투 중 저장은 확장 범위).
 - 기존 저장소 루트의 2022.3 프로젝트와 섞지 않도록 `Darkest/` 폴더에 **독립 Unity 프로젝트**로 만들었다.
 
 ### 범위
 | MVP (이번 구현) | 확장 (제안) |
 |---|---|
-| 4:4 진형 전투, 열(rank) 기반 스킬 사용/타격 규칙 | 시체(corpse), 표식(mark), 버프/디버프 스킬, 은신 |
+| 4:4 진형 전투, 열(rank) 기반 스킬 사용/타격 규칙 | 시체(corpse), 표식(mark), 버프/디버프 스킬, 은신, 전투 종료 연출 대기 |
 | 명중/회피/치명/방어, 출혈·역병·기절, 밀치기/당기기 | 몬스터 크기(2칸), 보스 전용 AI·페이즈 |
 | 죽음의 문턱 + 치명상 저항 | 영웅 레벨/장비/기벽(quirk)/질병 |
 | 스트레스, 결의 판정(고통/미덕), 고통 폭주·미덕 격려, 심장마비 | 고통 시 명령 거부/자해 등 행동 이상 |
-| 던전 자동 생성(메인 경로+곁가지), 빛/횃불, 허기, 골동품, 보물, 보스 | 야영(Camping), 함정/정찰, 복도 조우, 빛에 따른 전투 보정 |
+| 던전 자동 생성(메인 경로+곁가지), 빛/횃불, 허기, 골동품, 보물, 보스 | 야영 스킬(직업별), 함정/정찰, 복도 조우 |
+| 빛 보정(어두울수록 몬스터 명중/치명↑, 전리품↑), 야영(장작+식량 → 회복/스트레스 완화) | |
+| 전투 연출 큐(피격 흔들림, 데미지/회복/상태 숫자), 연출 중 입력 잠금 | 스킬 애니메이션, 사운드, 카메라 연출 |
 | 마을: 명부, 모집(역마차), 선술집, 보급, 해고, 귀환 정산 | 건물 업그레이드, 요양원, 대장간, 주간 이벤트 |
 | 로컬 세이브/로드(마을 상태), seed 재현 | 탐험 중 저장, 클라우드 세이브, 리플레이 뷰어 |
 
@@ -38,8 +40,8 @@
    이후 기획 수치는 에셋에서 수정한다. 비워두면 코드 더미(`DefaultContent`)와 기본 밸런스로 동작.
 
 ### 플레이 흐름
-마을(영웅 클릭 순서대로 1~4열 편성, 식량/횃불 구매) → **던전 출발** → 인접 방으로 이동(복도마다 빛 감소·스트레스)
-→ 전투방에서 **스킬 → 대상** 선택 → 보스 처치/후퇴/전멸 → 결과 → **마을로 귀환**(사망자 제거, 전리품 입금, 주차 +1).
+마을(영웅 클릭 순서대로 1~4열 편성, 식량/횃불/장작 구매) → **던전 출발** → 인접 방으로 이동(복도마다 빛 감소·스트레스)
+→ 정리된 방에서 **야영** 가능 → 전투방에서 **스킬 → 대상** 선택(연출이 끝나면 다음 입력) → 보스 처치/후퇴/전멸 → 결과 → **마을로 귀환**(사망자 제거, 전리품 입금, 주차 +1).
 
 ### `GameBootstrap` 인스펙터
 | 필드 | 설명 |
@@ -55,7 +57,7 @@
 
 ### Unity 없이 테스트
 ```bash
-dotnet test Tools/DomainTests      # 137개 EditMode 테스트 (도메인만 컴파일)
+dotnet test Tools/DomainTests      # 142개 EditMode 테스트 (도메인만 컴파일)
 ```
 같은 테스트가 Unity **Test Runner → EditMode**에서도 그대로 돈다(`Darkest.Tests.EditMode.asmdef`).
 
@@ -76,7 +78,7 @@ Darkest/
 │  │  │  │  ├─ AI/                IEnemyAI (Strategy)
 │  │  │  │  └─ Events/            전투 도메인 이벤트
 │  │  │  ├─ Stress/               StressMeter, StressService, 고통/미덕 정의
-│  │  │  ├─ Dungeon/              DungeonGenerator, Expedition, CorridorTravel, TorchLight, Curio
+│  │  │  ├─ Dungeon/              DungeonGenerator, Expedition, CorridorTravel, Camp, LightEffects, TorchLight, Curio
 │  │  │  ├─ Hamlet/               Town, TownService (모집/선술집/보급/정산)
 │  │  │  ├─ Content/              정의(Definition) 타입, IContentCatalog, CombatantFactory, DefaultContent(더미)
 │  │  │  ├─ Save/                 GameSaveData, LineSaveSerializer, SaveMapper, SaveGateway, ISaveRepository
@@ -86,8 +88,8 @@ Darkest/
 │  │     ├─ Infrastructure/       UnityGameLogger, FileSaveRepository, PlaceholderSpriteProvider (Adapter)
 │  │     ├─ Presentation/         GameBootstrap(Composition Root), SceneScaffold
 │  │     │  ├─ Ui/                UiFactory, PooledButtonList(Object Pool), UiTheme
-│  │     │  ├─ Views/             Town/Dungeon/Battle/Result View, BattleStageView+UnitView(Pool, Gizmos), EventLogView
-│  │     │  └─ Presenters/        Town/Dungeon/Battle/Result Presenter, ScreenRouter, EventLogPresenter
+│  │     │  ├─ Views/             Town/Dungeon/Battle/Result View, BattleStageView+UnitView(Pool, Gizmos), BattleAnimationPlayer, EventLogView
+│  │     │  └─ Presenters/        Town/Dungeon/Battle/Result Presenter, ScreenRouter, EventLogPresenter, BattleAnimationPresenter
 │  │     └─ Debugging/            GameDebugView, ReadOnlyFieldAttribute
 │  ├─ Editor/                     콘텐츠 에셋 생성기, 씬 생성, ReadOnly 드로어
 │  ├─ Tests/EditMode/             NUnit 테스트 (도메인만 참조)
@@ -188,12 +190,12 @@ battle.Submit(new UseSkillCommand(battle.CurrentActor, skill, target)); // 실�
 | 늘리고 싶은 것 | 어디를 | 비고 |
 |---|---|---|
 | 새 스킬 효과(표식, 버프, 회복 차단…) | `ISkillEffect` 구현 + `SkillEffectKind`/`SkillEffectFactory`에 한 줄 | `UseSkillCommand` 수정 불필요 |
-| 빛에 따른 명중/치명 보정 | `IHitResolver` 새 구현(빛 수치 주입) → `BattleServices`에 전달 | |
+| 빛 보정 수치/규칙 | `ExpeditionRules.*ByLight` 배열(BalanceConfig SO에서 편집), 규칙 자체는 `LightEffects` | 몬스터에 출처 "light" StatModifier로 붙음 |
 | 보스 AI, 위협도 기반 AI | `IEnemyAI` 구현. 몬스터 정의에 AI 키를 두고 팩토리로 선택 | |
 | 새 상태이상 | `StatusKind` + `StatusEffectSet` 처리 + 효과 클래스 | |
 | 야영/함정/복도 조우 | `CorridorTravel.Step`, `RoomType` + `Expedition.EnterRoom` | |
 | 마을 건물 | `TownService`에 서비스 메서드 or 건물별 서비스 클래스 분리 | |
-| 연출(애니메이션/이펙트) | `IEventBus` 구독하는 "연출 큐" Presenter. 도메인은 즉시 처리, 연출은 큐에서 순차 재생 | 현재는 즉시 반영 |
+| 연출(애니메이션/이펙트) | `BattleAnimationPresenter`(이벤트→비트) + `BattleAnimationPlayer`(재생). 새 이벤트 연출은 Presenter에 한 줄 | 마지막 일격은 화면 전환으로 생략됨(아래 주의점) |
 | 프리팹 UI | `SceneScaffold`/`UiFactory`만 교체. View의 이벤트/Render API 유지 | |
 | 세이브 포맷(JSON 등) | `ISaveSerializer` 새 구현. 탐험 중 저장은 `GameSaveData` 확장 + `SaveMapper` | |
 | 리플레이 | seed + `BattleContext.History`(명령 기록) 재실행 | 테스트 `SameSeed_ReplaysIdentically` 참고 |
@@ -204,15 +206,16 @@ battle.Submit(new UseSkillCommand(battle.CurrentActor, skill, target)); // 실�
 
 ## 6. 예상되는 버그 / 주의점
 
-1. **입력 시스템 설정**: UI는 구 Input Manager의 `StandaloneInputModule`을 쓴다. 프로젝트 설정
-   `Player → Active Input Handling`이 *Input System Package (New)* 전용이면 클릭이 안 되고 에러가 난다
-   → **Both** 또는 **Input Manager (Old)** 로 바꾸거나, `UiFactory.EnsureEventSystem`을 `InputSystemUIInputModule`로 교체.
+1. **입력 시스템 설정 불일치**: Input System 패키지 설치 여부로 입력 모듈을 고른다. 패키지는 설치돼 있는데
+   `Player → Active Input Handling`이 *Input Manager (Old)* 전용이면(또는 반대) 클릭이 안 된다 → **Both**로 두면 안전하다.
 2. **도메인 객체 공유 상태**: 탐험 파티 `Formation`은 전투에도 그대로 쓰인다(위치/사망 정리가 이어지도록 의도).
    전투 중 사망자는 진형에서 즉시 빠지므로, 사망자 집계는 진형이 아니라 `Expedition.Embarked/Fallen` 기준으로 해야 한다.
    또 `SkillDefinition`은 여러 영웅이 공유하는 불변 데이터이므로 런타임 상태를 넣으면 안 된다.
 3. **이벤트 재진입과 화면 전환 타이밍**: `SubmitBattleCommand` 한 번에 몬스터 턴들이 연속 실행되고, 전투가 끝나면
    그 호출 안에서 `GameModeChanged`가 발행되어 화면이 바뀐다. Presenter는 호출 뒤 `session.Mode`를 확인하고 그리도록 되어 있으니,
    새 Presenter를 만들 때도 같은 규칙을 지킬 것. (구독 해제는 `Dispose` — 새 게임 시 `ScreenRouter`가 일괄 해제)
+   같은 이유로 **전투를 끝낸 마지막 일격의 연출은 재생되지 않는다**(화면이 먼저 바뀜). 필요하면 `GameMode`에
+   "전투 결과" 단계를 추가해 연출이 끝난 뒤 탐험으로 넘어가게 확장한다.
 
 기타: 한글/기호(▶ ✝ ★) 표시는 OS 폰트 폴백에 의존한다(내장 Legacy 폰트). 깨지면 TMP 한글 폰트로 교체 권장.
 `.meta` 파일은 `GameBootstrap.cs`와 `Main.unity`만 동봉했다(씬 참조 유지용). 나머지는 Unity가 처음 열 때 생성하므로 그대로 커밋하면 된다.

@@ -84,15 +84,16 @@ namespace Darkest.Domain.Hamlet
             return null;
         }
 
-        public int ProvisionCost(int food, int torches) => food * _rules.FoodPrice + torches * _rules.TorchPrice;
+        public int ProvisionCost(Provisions provisions) =>
+            provisions.Food * _rules.FoodPrice + provisions.Torches * _rules.TorchPrice + provisions.Firewood * _rules.FirewoodPrice;
 
         /// <summary>보급품 구매 → 탐험용 인벤토리 생성.</summary>
-        public string TryBuyProvisions(int food, int torches, out Inventory inventory)
+        public string TryBuyProvisions(Provisions provisions, out Inventory inventory)
         {
             inventory = null;
-            if (food < 0 || torches < 0) return "수량 오류";
-            if (!_town.TrySpend(ProvisionCost(food, torches))) return "골드가 부족합니다.";
-            inventory = new Inventory(food, torches);
+            if (!provisions.IsValid) return "수량 오류";
+            if (!_town.TrySpend(ProvisionCost(provisions))) return "골드가 부족합니다.";
+            inventory = new Inventory(provisions);
             return null;
         }
 

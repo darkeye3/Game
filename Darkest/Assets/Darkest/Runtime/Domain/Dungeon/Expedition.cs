@@ -18,6 +18,8 @@ namespace Darkest.Domain.Dungeon
         private readonly ExpeditionRules _rules;
         private readonly CurioResolver _curioResolver;
         private readonly CorridorTravel _corridor;
+        private readonly Camp _camp;
+        private readonly LightEffects _lightEffects;
         private readonly IContentCatalog _catalog;
         private readonly IRandom _random;
         private readonly IEventBus _events;
@@ -40,6 +42,8 @@ namespace Darkest.Domain.Dungeon
             _logger = logger ?? NullLogger.Instance;
             _curioResolver = new CurioResolver(stress, random);
             _corridor = new CorridorTravel(rules, stress, random, events, _logger);
+            _camp = new Camp(rules, stress, events);
+            _lightEffects = new LightEffects(rules);
             Light = new TorchLight(rules);
             CurrentRoomId = map.EntranceId;
             for (int i = 0; i < party.Members.Count; i++) _embarked.Add((Hero)party.Members[i]);
@@ -105,6 +109,19 @@ namespace Darkest.Domain.Dungeon
             return null;
         }
 
+        public int CampFoodCost => _camp.FoodCost(Party);
+
+        /// <summary>정리된 방에서만 야영 가능(전투 직후 안전한 곳이라는 의미).</summary>
+        public string TryCamp()
+        {
+            if (Phase != ExpeditionPhase.Exploring) return "탐험 중이 아닙니다.";
+            if (!CurrentRoom.IsCleared) return "방을 먼저 정리해야 합니다.";
+            return _camp.TryMake(Party, Inventory, Light);
+        }
+
+        /// <summary>현재 빛 기준 몬스터 보정. GameSession이 전투 시작 시 호출한다.</summary>
+        public void ApplyLightToMonsters(Formation monsters) => _lightEffects.ApplyToMonsters(monsters, Light.Level);
+
         public void Retreat()
         {
             if (IsFinished) return;
@@ -125,7 +142,7 @@ namespace Darkest.Domain.Dungeon
 
             var room = CurrentRoom;
             room.IsCleared = true;
-            GainGold(room.GoldReward, "전투 보상");
+            GainGold(_lightEffects.ScaleLoot(room.GoldReward, Light.Level), "전투 보상");
             SetPhase(room.Type == RoomType.Boss ? ExpeditionPhase.Completed : ExpeditionPhase.Exploring);
         }
 
@@ -145,7 +162,7 @@ namespace Darkest.Domain.Dungeon
                     break;
                 case RoomType.Treasure:
                     room.IsCleared = true;
-                    GainGold(room.GoldReward, "보물");
+                    GainGold(_lightEffects.ScaleLoot(room.GoldReward, Light.Level), "보물");
                     break;
             }
         }

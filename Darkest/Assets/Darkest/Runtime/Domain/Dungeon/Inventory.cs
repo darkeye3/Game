@@ -2,18 +2,59 @@ using Darkest.Domain.Core;
 
 namespace Darkest.Domain.Dungeon
 {
+    /// <summary>출발 전 구매할 보급품 수량(값 객체). 항목이 늘어도 메서드 시그니처가 늘어나지 않게 묶는다.</summary>
+    public readonly struct Provisions
+    {
+        public Provisions(int food, int torches, int firewood = 0)
+        {
+            Food = food;
+            Torches = torches;
+            Firewood = firewood;
+        }
+
+        public int Food { get; }
+        public int Torches { get; }
+        public int Firewood { get; }
+
+        public bool IsValid => Food >= 0 && Torches >= 0 && Firewood >= 0;
+
+        public Provisions WithFood(int food) => new Provisions(food, Torches, Firewood);
+        public Provisions WithTorches(int torches) => new Provisions(Food, torches, Firewood);
+        public Provisions WithFirewood(int firewood) => new Provisions(Food, Torches, firewood);
+    }
+
     /// <summary>탐험용 소모품 + 획득 골드.</summary>
     public sealed class Inventory
     {
-        public Inventory(int food, int torches)
+        public Inventory(int food, int torches, int firewood = 0)
         {
             Food = Guard.NonNegative(food, nameof(food));
             Torches = Guard.NonNegative(torches, nameof(torches));
+            Firewood = Guard.NonNegative(firewood, nameof(firewood));
         }
+
+        public Inventory(Provisions provisions) : this(provisions.Food, provisions.Torches, provisions.Firewood) { }
 
         public int Food { get; private set; }
         public int Torches { get; private set; }
+        public int Firewood { get; private set; }
         public int Gold { get; private set; }
+
+        public bool TryConsumeFirewood()
+        {
+            if (Firewood <= 0) return false;
+            Firewood--;
+            return true;
+        }
+
+        /// <summary>amount개를 한 번에 소모. 부족하면 아무것도 소모하지 않고 false.</summary>
+        public bool TryConsumeFood(int amount)
+        {
+            Guard.NonNegative(amount, nameof(amount));
+            if (Food < amount) return false;
+            Food -= amount;
+            return true;
+        }
 
         public bool TryConsumeFood()
         {

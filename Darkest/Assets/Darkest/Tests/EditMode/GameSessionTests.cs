@@ -20,11 +20,11 @@ namespace Darkest.Tests
         public void Embark_ValidatesParty()
         {
             var session = NewSession(1);
-            Assert.That(session.TryEmbark(new List<Hero>(), 4, 4), Is.Not.Null);
+            Assert.That(session.TryEmbark(new List<Hero>(), new Provisions(4, 4)), Is.Not.Null);
             var outsider = TestKit.Hero("outsider");
-            Assert.That(session.TryEmbark(new[] { outsider }, 4, 4), Is.Not.Null);
+            Assert.That(session.TryEmbark(new[] { outsider }, new Provisions(4, 4)), Is.Not.Null);
             var first = session.Town.Roster[0];
-            Assert.That(session.TryEmbark(new[] { first, first }, 4, 4), Is.Not.Null);
+            Assert.That(session.TryEmbark(new[] { first, first }, new Provisions(4, 4)), Is.Not.Null);
             Assert.That(session.Mode, Is.EqualTo(GameMode.Town));
         }
 
@@ -33,7 +33,7 @@ namespace Darkest.Tests
         {
             var session = NewSession(seed);
             int rosterBefore = session.Town.Roster.Count;
-            Assert.That(session.TryEmbark(session.Town.Roster, 6, 4), Is.Null);
+            Assert.That(session.TryEmbark(session.Town.Roster, new Provisions(10, 4, 1)), Is.Null);
 
             AutoPlay(session, seed);
 
@@ -88,6 +88,8 @@ namespace Darkest.Tests
                     continue;
                 }
                 if (expedition.Light.Level >= LightLevel.Shadowy) session.TryUseTorch();
+                if (expedition.Inventory.Firewood > 0 && expedition.CurrentRoom.IsCleared && expedition.Party.Members[0].CurrentHp * 2 < expedition.Party.Members[0].MaxHp)
+                    Assert.That(session.TryCamp(), Is.Null.Or.EqualTo("식량이 부족합니다. (필요 " + expedition.CampFoodCost + ")"));
 
                 var neighbors = expedition.CurrentRoom.Neighbors;
                 int next = neighbors[random.Range(0, neighbors.Count)];

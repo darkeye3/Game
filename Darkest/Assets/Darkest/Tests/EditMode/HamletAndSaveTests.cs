@@ -2,6 +2,7 @@ using System;
 using Darkest.Domain.Combat;
 using Darkest.Domain.Content;
 using Darkest.Domain.Core;
+using Darkest.Domain.Dungeon;
 using Darkest.Domain.Hamlet;
 using Darkest.Domain.Save;
 using Darkest.Domain.Stress;
@@ -59,10 +60,11 @@ namespace Darkest.Tests
         public void Provisions_CostPerItem()
         {
             var service = CreateTown(1000, out _, out _);
-            Assert.That(service.TryBuyProvisions(4, 2, out var inventory), Is.Null);
+            Assert.That(service.TryBuyProvisions(new Provisions(4, 2, 1), out var inventory), Is.Null);
             Assert.That(inventory.Food, Is.EqualTo(4));
-            Assert.That(service.Town.Gold, Is.EqualTo(1000 - service.ProvisionCost(4, 2)));
-            Assert.That(service.TryBuyProvisions(1000, 0, out _), Is.Not.Null);
+            Assert.That(inventory.Firewood, Is.EqualTo(1));
+            Assert.That(service.Town.Gold, Is.EqualTo(1000 - service.ProvisionCost(new Provisions(4, 2, 1))));
+            Assert.That(service.TryBuyProvisions(new Provisions(1000, 0), out _), Is.Not.Null);
         }
 
         [Test]
