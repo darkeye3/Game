@@ -74,6 +74,16 @@ namespace Darkest.Tests
 
             while (session.Mode != GameMode.ExpeditionResult && guard++ < 5000)
             {
+                if (session.IsBattleConcluded)
+                {
+                    // 끝난 전투는 확인 전까지 전투 모드에 머물고, 더 이상 명령을 받지 않는다.
+                    Assert.That(session.Battle.IsOver, Is.True);
+                    Assert.That(session.SubmitBattleCommand(new Domain.Combat.Commands.PassCommand(session.Battle.Context.Heroes.Members.Count > 0 ? session.Battle.Context.Heroes.Members[0] : session.Expedition.Embarked[0])), Is.Not.Null);
+                    Assert.That(session.ContinueAfterBattle(), Is.Null);
+                    Assert.That(session.Mode, Is.Not.EqualTo(GameMode.Battle));
+                    Assert.That(session.LastBattleSummary, Is.Null);
+                    continue;
+                }
                 if (session.Mode == GameMode.Battle)
                 {
                     var battle = session.Battle;

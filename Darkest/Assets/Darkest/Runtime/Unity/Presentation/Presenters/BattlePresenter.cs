@@ -20,7 +20,7 @@ namespace Darkest.Unity.Presentation.Presenters
         private readonly BattleView _view;
         private readonly BattleStageView _stage;
         private readonly BattleAnimationPresenter _animations;
-        private readonly Action _renderAction;
+        private readonly Action _afterAnimations;
         private readonly IEnemyAI _autoPilot = new RandomEnemyAI();
         private readonly List<Combatant> _targets = new List<Combatant>(Formation.MaxRanks);
         private readonly List<Combatant> _scratch = new List<Combatant>(Formation.MaxRanks);
@@ -32,11 +32,12 @@ namespace Darkest.Unity.Presentation.Presenters
             _view = view;
             _stage = stage;
             _animations = animations;
-            _renderAction = Render; // 콜백 델리게이트를 매번 새로 만들지 않도록 캐시
+            _afterAnimations = OnAnimationsFinished; // 콜백 델리게이트를 매번 새로 만들지 않도록 캐시
             _view.ForwardClicked += OnForward;
             _view.BackwardClicked += OnBackward;
             _view.PassClicked += OnPass;
             _view.AutoClicked += OnAuto;
+            _view.ContinueClicked += OnContinue;
         }
 
         public GameMode Mode => GameMode.Battle;
@@ -45,8 +46,9 @@ namespace Darkest.Unity.Presentation.Presenters
         {
             ClearSelection();
             _view.SetMessage(string.Empty);
+            _view.HideResult();
             Render();
-            _animations.Play(_renderAction); // 화면 진입 전 몬스터 선공 등 쌓인 연출 재생
+            _animations.Play(_afterAnimations); // 화면 진입 전 몬스터 선공 등 쌓인 연출 재생
         }
 
         public void Exit()
@@ -64,7 +66,9 @@ namespace Darkest.Unity.Presentation.Presenters
             var context = battle.Context;
             var actor = battle.CurrentActor;
 
-            _view.SetHeader("라운드 " + context.Round + "  —  " + (actor != null ? actor.DisplayName + "의 차례" : ""));
+            _view.SetHeader(battle.IsOver
+                ? "라운드 " + context.Round + "  —  전투 종료"
+                : "라운드 " + context.Round + "  —  " + (actor != null ? actor.DisplayName + "의 차례" : ""));
             _view.SetHeroes(TextFormat.Formation(context.Heroes));
             _view.SetMonsters(TextFormat.Formation(context.Monsters));
             RenderSkills(battle, actor);
@@ -137,7 +141,6 @@ namespace Darkest.Unity.Presentation.Presenters
         {
             if (_animations.IsPlaying) return; // 연출 중 입력 무시
             string error = _session.SubmitBattleCommand(command);
-            if (_session.Mode != GameMode.Battle) return; // 전투 종료 → 라우터가 화면 전환
             ClearSelection();
             _view.SetMessage(error ?? string.Empty);
             if (error != null) { Render(); return; }
@@ -145,7 +148,22 @@ namespace Darkest.Unity.Presentation.Presenters
             // 연출이 끝난 뒤에 화면을 갱신해야 쓰러진 유닛/이동이 연출 후에 반영된다.
             _view.Skills.Begin(); _view.Skills.End();
             _view.Targets.Begin(); _view.Targets.End();
-            _animations.Play(_renderAction);
+            _animations.Play(_afterAnimations);
+        }
+
+        /// <summary>연출이 다 끝난 뒤: 화면 갱신, 전투가 끝났다면 결과 패널(마지막 일격이 다 보인 다음에 뜬다).</summary>
+        private void OnAnimationsFinished()
+        {
+            Render();
+            var summary = _session.LastBattleSummary;
+            if (_session.IsBattleConcluded && summary != null) _view.ShowResult(TextFormat.BattleSummary(summary));
+        }
+
+        private void OnContinue()
+        {
+            if (_animations.IsPlaying) return;
+            string error = _session.ContinueAfterBattle();
+            if (error != null) _view.SetMessage(error);
         }
 
         private void ClearSelection()
@@ -160,6 +178,7 @@ namespace Darkest.Unity.Presentation.Presenters
             _view.BackwardClicked -= OnBackward;
             _view.PassClicked -= OnPass;
             _view.AutoClicked -= OnAuto;
+            _view.ContinueClicked -= OnContinue;
         }
     }
 }

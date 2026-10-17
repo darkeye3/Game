@@ -195,7 +195,7 @@ battle.Submit(new UseSkillCommand(battle.CurrentActor, skill, target)); // 실�
 | 새 상태이상 | `StatusKind` + `StatusEffectSet` 처리 + 효과 클래스 | |
 | 야영/함정/복도 조우 | `CorridorTravel.Step`, `RoomType` + `Expedition.EnterRoom` | |
 | 마을 건물 | `TownService`에 서비스 메서드 or 건물별 서비스 클래스 분리 | |
-| 연출(애니메이션/이펙트) | `BattleAnimationPresenter`(이벤트→비트) + `BattleAnimationPlayer`(재생). 새 이벤트 연출은 Presenter에 한 줄 | 마지막 일격은 화면 전환으로 생략됨(아래 주의점) |
+| 연출(애니메이션/이펙트) | `BattleAnimationPresenter`(이벤트→비트) + `BattleAnimationPlayer`(재생). 새 이벤트 연출은 Presenter에 한 줄 | 전투가 끝나도 `ContinueAfterBattle` 전까지 전투 화면 유지 → 마지막 일격까지 재생 후 결과 패널 |
 | 프리팹 UI | `SceneScaffold`/`UiFactory`만 교체. View의 이벤트/Render API 유지 | |
 | 세이브 포맷(JSON 등) | `ISaveSerializer` 새 구현. 탐험 중 저장은 `GameSaveData` 확장 + `SaveMapper` | |
 | 리플레이 | seed + `BattleContext.History`(명령 기록) 재실행 | 테스트 `SameSeed_ReplaysIdentically` 참고 |
@@ -211,11 +211,10 @@ battle.Submit(new UseSkillCommand(battle.CurrentActor, skill, target)); // 실�
 2. **도메인 객체 공유 상태**: 탐험 파티 `Formation`은 전투에도 그대로 쓰인다(위치/사망 정리가 이어지도록 의도).
    전투 중 사망자는 진형에서 즉시 빠지므로, 사망자 집계는 진형이 아니라 `Expedition.Embarked/Fallen` 기준으로 해야 한다.
    또 `SkillDefinition`은 여러 영웅이 공유하는 불변 데이터이므로 런타임 상태를 넣으면 안 된다.
-3. **이벤트 재진입과 화면 전환 타이밍**: `SubmitBattleCommand` 한 번에 몬스터 턴들이 연속 실행되고, 전투가 끝나면
-   그 호출 안에서 `GameModeChanged`가 발행되어 화면이 바뀐다. Presenter는 호출 뒤 `session.Mode`를 확인하고 그리도록 되어 있으니,
-   새 Presenter를 만들 때도 같은 규칙을 지킬 것. (구독 해제는 `Dispose` — 새 게임 시 `ScreenRouter`가 일괄 해제)
-   같은 이유로 **전투를 끝낸 마지막 일격의 연출은 재생되지 않는다**(화면이 먼저 바뀜). 필요하면 `GameMode`에
-   "전투 결과" 단계를 추가해 연출이 끝난 뒤 탐험으로 넘어가게 확장한다.
+3. **이벤트 재진입과 화면 전환 타이밍**: `SubmitBattleCommand` 한 번에 몬스터 턴들이 연속 실행된다. 전투가 끝나면
+   세션은 `Battle` 모드에 머물고(`IsBattleConcluded`, `LastBattleSummary`), 결과 패널의 "계속"이 `ContinueAfterBattle`을
+   불러야 탐험/결과 화면으로 넘어간다. 탐험 코드나 봇이 전투 뒤 바로 다음 행동을 하려면 이 호출을 잊지 말 것.
+   (구독 해제는 `Dispose` — 새 게임 시 `ScreenRouter`가 일괄 해제)
 
 기타: 한글/기호(▶ ✝ ★) 표시는 OS 폰트 폴백에 의존한다(내장 Legacy 폰트). 깨지면 TMP 한글 폰트로 교체 권장.
 `.meta` 파일은 `GameBootstrap.cs`와 `Main.unity`만 동봉했다(씬 참조 유지용). 나머지는 Unity가 처음 열 때 생성하므로 그대로 커밋하면 된다.

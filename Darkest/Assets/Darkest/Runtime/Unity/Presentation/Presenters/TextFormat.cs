@@ -1,7 +1,9 @@
 using System.Text;
 using Darkest.Domain.Combat;
 using Darkest.Domain.Combat.Status;
+using Darkest.Domain.Combat.Events;
 using Darkest.Domain.Dungeon;
+using Darkest.Domain.Game;
 using Darkest.Domain.Stress;
 
 namespace Darkest.Unity.Presentation.Presenters
@@ -30,6 +32,15 @@ namespace Darkest.Unity.Presentation.Presenters
         {
             var sb = new StringBuilder();
             for (int i = 0; i < formation.Members.Count; i++) AppendCombatant(sb, formation.Members[i], i + 1);
+            return sb.ToString();
+        }
+
+        public static string BattleSummary(BattleSummary summary)
+        {
+            var sb = new StringBuilder();
+            sb.Append(summary.Result == BattleResult.Victory ? "승리!" : "패배...").Append("  (").Append(summary.Rounds).Append("라운드)\n");
+            if (summary.GoldGained > 0) sb.Append("전리품 +").Append(summary.GoldGained).Append("G\n");
+            for (int i = 0; i < summary.Fallen.Count; i++) sb.Append("✝ ").Append(summary.Fallen[i].DisplayName).Append('\n');
             return sb.ToString();
         }
 

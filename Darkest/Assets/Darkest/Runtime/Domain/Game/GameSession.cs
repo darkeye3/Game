@@ -80,7 +80,16 @@ namespace Darkest.Domain.Game
         public Town Town => TownService.Town;
         public GameMode Mode { get; private set; } = GameMode.Town;
         public Expedition Expedition { get; private set; }
+        /// <summary>
+        /// 진행 중이거나 막 끝난 전투. 전투가 끝나도 ContinueAfterBattle 전까지는 Battle 모드에 머문다
+        /// (마지막 일격 연출과 결과 표시를 화면이 마칠 수 있게).
+        /// </summary>
         public BattleSession Battle { get; private set; }
+
+        /// <summary>막 끝난 전투의 결과. 전투 중이거나 전투가 없으면 null.</summary>
+        public BattleSummary LastBattleSummary { get; private set; }
+
+        public bool IsBattleConcluded => Mode == GameMode.Battle && LastBattleSummary != null;
         public int Seed => _random.Seed;
 
         public string TryEmbark(IReadOnlyList<Hero> party, Provisions provisions)
@@ -131,9 +140,20 @@ namespace Darkest.Domain.Game
         public string SubmitBattleCommand(IBattleCommand command)
         {
             if (Mode != GameMode.Battle || Battle == null) return "전투 중이 아닙니다.";
+            if (Battle.IsOver) return "전투가 이미 끝났습니다.";
             string error = Battle.Submit(command);
             if (error == null && Battle.IsOver) FinishBattle();
             return error;
+        }
+
+        /// <summary>전투 결과 확인 후 탐험(또는 탐험 결과)으로 넘어간다.</summary>
+        public string ContinueAfterBattle()
+        {
+            if (!IsBattleConcluded) return "끝난 전투가 없습니다.";
+            Battle = null;
+            LastBattleSummary = null;
+            SetMode(Expedition.IsFinished ? GameMode.ExpeditionResult : GameMode.Exploring);
+            return null;
         }
 
         public void ReturnToTown()
@@ -164,16 +184,22 @@ namespace Darkest.Domain.Game
             Battle = new BattleSession(Expedition.Party, monsters, _battleServices);
             Battle.Start();
             // 첫 영웅 차례까지 진행된 뒤에 화면을 바꿔야 UI가 올바른 행동자를 그린다.
-            if (Battle.IsOver) FinishBattle(); // 영웅 차례가 오기 전에 끝난 경우(몬스터 선공 전멸)
-            else SetMode(GameMode.Battle);
+            // 영웅 차례가 오기 전에 끝난 경우(몬스터 선공 전멸)에도 전투 화면에서 연출과 결과를 보여준다.
+            if (Battle.IsOver) FinishBattle();
+            SetMode(GameMode.Battle);
         }
 
         private void FinishBattle()
         {
             var result = Battle.Phase == BattlePhase.Victory ? BattleResult.Victory : BattleResult.Defeat;
+            int goldBefore = Expedition.Inventory.Gold;
+            int fallenBefore = Expedition.Fallen.Count;
             Expedition.ResolveBattle(result);
-            Battle = null;
-            SetMode(Expedition.IsFinished ? GameMode.ExpeditionResult : GameMode.Exploring);
+
+            var fallen = new List<Hero>();
+            for (int i = fallenBefore; i < Expedition.Fallen.Count; i++) fallen.Add(Expedition.Fallen[i]);
+            LastBattleSummary = new BattleSummary(result, Battle.Context.Round, Expedition.Inventory.Gold - goldBefore, fallen);
+            _logger.Info(LogCategory, LastBattleSummary.ToString());
         }
 
         private string ValidateParty(IReadOnlyList<Hero> party)

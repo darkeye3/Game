@@ -20,11 +20,14 @@ namespace Darkest.Unity.Presentation.Views
         private Text _message;
         private PooledButtonList _skills;
         private PooledButtonList _targets;
+        private RectTransform _resultPanel;
+        private Text _resultText;
 
         public event Action ForwardClicked;
         public event Action BackwardClicked;
         public event Action PassClicked;
         public event Action AutoClicked;
+        public event Action ContinueClicked;
 
         public PooledButtonList Skills => _skills;
         public PooledButtonList Targets => _targets;
@@ -58,7 +61,22 @@ namespace Darkest.Unity.Presentation.Views
 
             var monsters = Column(root, "Monsters", 0.75f, 0.99f, PanelBottom, panelTop);
             _monsters = Factory.CreateText(monsters, "MonsterStatus", UiTheme.SmallFontSize);
+
+            // 결과 패널은 전투가 끝나면 비는 스킬/대상 칸 위에 겹친다(위쪽 스테이지는 가리지 않는다).
+            _resultPanel = Factory.CreatePanel(root, "BattleResult", UiTheme.Panel, new Vector2(0.26f, PanelBottom), new Vector2(0.74f, panelTop));
+            var resultLayout = Factory.CreateVertical(_resultPanel, "ResultLayout");
+            _resultText = Factory.CreateText(resultLayout, "ResultText", UiTheme.BodyFontSize, TextAnchor.MiddleCenter);
+            AddButton(resultLayout, "계속 ▶", () => ContinueClicked?.Invoke());
+            HideResult();
         }
+
+        public void ShowResult(string text)
+        {
+            _resultText.text = text;
+            _resultPanel.gameObject.SetActive(true);
+        }
+
+        public void HideResult() => _resultPanel.gameObject.SetActive(false);
 
         public void SetHeader(string text) => _header.text = text;
         public void SetHeroes(string text) => _heroes.text = text;
