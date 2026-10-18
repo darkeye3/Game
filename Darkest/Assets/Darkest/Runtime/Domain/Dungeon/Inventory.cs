@@ -1,4 +1,6 @@
+using System.Collections.Generic;
 using Darkest.Domain.Core;
+using Darkest.Domain.Items;
 
 namespace Darkest.Domain.Dungeon
 {
@@ -23,9 +25,11 @@ namespace Darkest.Domain.Dungeon
         public Provisions WithFirewood(int firewood) => new Provisions(Food, Torches, firewood);
     }
 
-    /// <summary>탐험용 소모품 + 획득 골드.</summary>
+    /// <summary>탐험용 소모품 + 획득 골드·장신구.</summary>
     public sealed class Inventory
     {
+        private readonly List<TrinketDefinition> _trinkets = new List<TrinketDefinition>();
+
         public Inventory(int food, int torches, int firewood = 0)
         {
             Food = Guard.NonNegative(food, nameof(food));
@@ -39,6 +43,9 @@ namespace Darkest.Domain.Dungeon
         public int Torches { get; private set; }
         public int Firewood { get; private set; }
         public int Gold { get; private set; }
+
+        /// <summary>이번 탐험에서 주운 장신구. 귀환하면 마을 보관함으로 간다(전멸 시 잃음).</summary>
+        public IReadOnlyList<TrinketDefinition> Trinkets => _trinkets;
 
         public bool TryConsumeFirewood()
         {
@@ -72,6 +79,7 @@ namespace Darkest.Domain.Dungeon
 
         public void AddFood(int amount) => Food += Guard.NonNegative(amount, nameof(amount));
         public void AddGold(int amount) => Gold += Guard.NonNegative(amount, nameof(amount));
+        public void AddTrinket(TrinketDefinition trinket) => _trinkets.Add(Guard.NotNull(trinket, nameof(trinket)));
     }
 
     public enum LightLevel

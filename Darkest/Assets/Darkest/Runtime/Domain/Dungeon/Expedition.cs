@@ -4,6 +4,7 @@ using Darkest.Domain.Combat.Events;
 using Darkest.Domain.Combat.Resolution;
 using Darkest.Domain.Content;
 using Darkest.Domain.Core;
+using Darkest.Domain.Items;
 using Darkest.Domain.Stress;
 
 namespace Darkest.Domain.Dungeon
@@ -21,6 +22,8 @@ namespace Darkest.Domain.Dungeon
         private readonly CorridorTravel _corridor;
         private readonly Camp _camp;
         private readonly LightEffects _lightEffects;
+        private readonly ExpeditionLoot _loot;
+        private readonly StressService _stress;
         private readonly IContentCatalog _catalog;
         private readonly IRandom _random;
         private readonly IEventBus _events;
@@ -46,6 +49,8 @@ namespace Darkest.Domain.Dungeon
             _corridor = new CorridorTravel(rules, stress, hazard, events, _logger);
             _camp = new Camp(rules, stress, events);
             _lightEffects = new LightEffects(rules);
+            _stress = stress;
+            _loot = new ExpeditionLoot(rules, _lightEffects, new TrinketDropTable(catalog.Trinkets), inventory, random, events);
             Light = new TorchLight(rules);
             CurrentRoomId = map.EntranceId;
             for (int i = 0; i < party.Members.Count; i++) _embarked.Add((Hero)party.Members[i]);
@@ -67,6 +72,9 @@ namespace Darkest.Domain.Dungeon
         /// <summary>탐험 중 사망한 영웅(마을 귀환 시 명부에서 제거용).</summary>
         public IReadOnlyList<Hero> Fallen => _fallen;
 
+        /// <summary>야영 중이면 그 야영 상태(야영 스킬 포인트). 방을 떠나면 null.</summary>
+        public CampSession ActiveCamp { get; private set; }
+
         /// <summary>InBattle일 때 싸워야 할 몬스터 편성.</summary>
         public MonsterGroupDefinition PendingEncounter { get; private set; }
 
@@ -87,6 +95,13 @@ namespace Darkest.Domain.Dungeon
             CollectFallen();
         }
 
+        /// <summary>세이브 복원 전용: 저장 당시 야영 중이었으면 남은 포인트와 사용 기록을 되살린다.</summary>
+        internal void RestoreCamp(int respiteRemaining, IEnumerable<string> usedKeys)
+        {
+            ActiveCamp = NewCampSession();
+            ActiveCamp.Restore(respiteRemaining, usedKeys);
+        }
+
         /// <returns>실패 사유, 성공 시 null</returns>
         public string TryMoveTo(int roomId)
         {
@@ -94,6 +109,7 @@ namespace Darkest.Domain.Dungeon
             if (!Map.AreAdjacent(CurrentRoomId, roomId)) return "인접한 방이 아닙니다.";
             if (!CurrentRoom.IsCleared) return "현재 방을 먼저 정리해야 합니다.";
 
+            ActiveCamp = null; // 야영지를 떠나면 남은 야영 포인트는 사라진다.
             for (int step = 1; step <= _rules.CorridorSteps; step++)
             {
                 StepsTaken++;
@@ -136,7 +152,18 @@ namespace Darkest.Domain.Dungeon
         {
             if (Phase != ExpeditionPhase.Exploring) return "탐험 중이 아닙니다.";
             if (!CurrentRoom.IsCleared) return "방을 먼저 정리해야 합니다.";
-            return _camp.TryMake(Party, Inventory, Light);
+            if (ActiveCamp != null) return "이미 야영 중입니다.";
+            string error = _camp.TryMake(Party, Inventory, Light);
+            if (error == null) ActiveCamp = NewCampSession();
+            return error;
+        }
+
+        /// <param name="target">아군 1명 대상 스킬일 때만 필요.</param>
+        public string TryUseCampSkill(Hero user, CampSkillDefinition skill, Hero target)
+        {
+            if (Phase != ExpeditionPhase.Exploring) return "탐험 중이 아닙니다.";
+            if (ActiveCamp == null) return "야영 중에만 쓸 수 있습니다.";
+            return ActiveCamp.TryUse(user, skill, target);
         }
 
         /// <summary>현재 빛 기준 몬스터 보정. GameSession이 전투 시작 시 호출한다.</summary>
@@ -153,6 +180,7 @@ namespace Darkest.Domain.Dungeon
             Guard.That(Phase == ExpeditionPhase.InBattle, "전투 중이 아닌데 전투 결과가 들어왔습니다.");
             CollectFallen();
             PendingEncounter = null;
+            ClearCampBuffs(); // 야영 버프는 "다음 전투 한 번"만 간다.
 
             if (result == BattleResult.Defeat || Party.IsEmpty)
             {
@@ -163,7 +191,8 @@ namespace Darkest.Domain.Dungeon
             BattlesWon++;
             var room = CurrentRoom;
             room.IsCleared = true;
-            GainGold(_lightEffects.ScaleLoot(room.GoldReward, Light.Level), "전투 보상");
+            _loot.GainScaledGold(room.GoldReward, Light.Level, "전투 보상");
+            if (room.Type == RoomType.Boss) _loot.DropBossTrinkets();
             SetPhase(room.Type == RoomType.Boss ? ExpeditionPhase.Completed : ExpeditionPhase.Exploring);
         }
 
@@ -183,16 +212,17 @@ namespace Darkest.Domain.Dungeon
                     break;
                 case RoomType.Treasure:
                     room.IsCleared = true;
-                    GainGold(_lightEffects.ScaleLoot(room.GoldReward, Light.Level), "보물");
+                    _loot.GainScaledGold(room.GoldReward, Light.Level, "보물");
+                    _loot.RollTreasureTrinket();
                     break;
             }
         }
 
-        private void GainGold(int gold, string source)
+        private CampSession NewCampSession() => new CampSession(_rules.CampRespitePoints, Party, _catalog, _stress, _events);
+
+        private void ClearCampBuffs()
         {
-            if (gold <= 0) return;
-            Inventory.AddGold(gold);
-            _events.Publish(new LootGained(gold, source));
+            for (int i = 0; i < _embarked.Count; i++) _embarked[i].Modifiers.RemoveBySource(CampSkillDefinition.BuffSourceId);
         }
 
         /// <returns>파티 전멸이면 true</returns>

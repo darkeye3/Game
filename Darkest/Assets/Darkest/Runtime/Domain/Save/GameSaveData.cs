@@ -8,14 +8,26 @@ namespace Darkest.Domain.Save
     /// </summary>
     public sealed class GameSaveData
     {
-        /// <summary>2: 원정 중 저장(ExpeditionSaveData)과 영웅 사망/문턱 플래그 추가. 1도 그대로 읽는다.</summary>
-        public const int CurrentVersion = 2;
+        /// <summary>
+        /// 2: 원정 중 저장(ExpeditionSaveData)과 영웅 사망/문턱 플래그.
+        /// 3: 난수 상태, 건물 단계, 장신구, 상태이상, 야영 버프/야영 상태. 이전 버전도 그대로 읽는다.
+        /// </summary>
+        public const int CurrentVersion = 3;
 
         public int Version { get; set; } = CurrentVersion;
         public int Gold { get; set; }
         public int Week { get; set; }
         public int NextId { get; set; }
         public List<HeroSaveData> Roster { get; } = new List<HeroSaveData>();
+
+        /// <summary>저장 시점의 난수 진행 상태. 없으면(구버전) 새 seed로 이어간다.</summary>
+        public ulong? RandomState { get; set; }
+
+        /// <summary>건물 종류 이름 → 단계.</summary>
+        public Dictionary<string, int> Buildings { get; } = new Dictionary<string, int>();
+
+        /// <summary>보관함 장신구 ID.</summary>
+        public List<string> TrinketStash { get; } = new List<string>();
 
         /// <summary>원정 중에 저장했으면 그 진행도, 마을에서 저장했으면 null.</summary>
         public ExpeditionSaveData Expedition { get; set; }
@@ -43,6 +55,20 @@ namespace Darkest.Domain.Save
 
         public List<RoomSaveData> Rooms { get; } = new List<RoomSaveData>();
         public List<RoomLinkSaveData> Links { get; } = new List<RoomLinkSaveData>();
+
+        /// <summary>이번 원정에서 주운 장신구 ID.</summary>
+        public List<string> FoundTrinkets { get; } = new List<string>();
+
+        /// <summary>야영 중에 저장했으면 야영 상태, 아니면 null.</summary>
+        public CampSaveData Camp { get; set; }
+    }
+
+    public sealed class CampSaveData
+    {
+        public int RespiteRemaining { get; set; }
+
+        /// <summary>"영웅ID:스킬ID"</summary>
+        public List<string> UsedKeys { get; } = new List<string>();
     }
 
     public sealed class RoomSaveData
@@ -76,6 +102,38 @@ namespace Darkest.Domain.Save
         public bool IsDead { get; set; }
         public bool IsAtDeathsDoor { get; set; }
         public int Experience { get; set; }
+
+        /// <summary>슬롯 순서 장신구 ID. 빈 슬롯은 빈 문자열.</summary>
+        public List<string> Trinkets { get; } = new List<string>();
+
+        public List<StatusSaveData> Statuses { get; } = new List<StatusSaveData>();
+        public List<StatBonusSaveData> CampBuffs { get; } = new List<StatBonusSaveData>();
+    }
+
+    public sealed class StatusSaveData
+    {
+        public StatusSaveData(string kind, int damagePerTurn, int remainingTurns)
+        {
+            Kind = kind;
+            DamagePerTurn = damagePerTurn;
+            RemainingTurns = remainingTurns;
+        }
+
+        public string Kind { get; }
+        public int DamagePerTurn { get; }
+        public int RemainingTurns { get; }
+    }
+
+    public sealed class StatBonusSaveData
+    {
+        public StatBonusSaveData(string stat, int amount)
+        {
+            Stat = stat;
+            Amount = amount;
+        }
+
+        public string Stat { get; }
+        public int Amount { get; }
     }
 
     /// <summary>저장 포맷 Strategy. 포맷을 바꾸려면(JSON/바이너리) 이 인터페이스를 새로 구현한다.</summary>

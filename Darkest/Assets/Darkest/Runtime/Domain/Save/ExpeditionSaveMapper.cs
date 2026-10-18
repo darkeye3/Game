@@ -11,7 +11,8 @@ using Darkest.Domain.Stress;
 namespace Darkest.Domain.Save
 {
     /// <summary>
-    /// 탐험 중(Exploring) 원정 ↔ ExpeditionSaveData. 전투 중 상태와 지속 효과(출혈 등), 난수 진행은 저장하지 않는다.
+    /// 탐험 중(Exploring) 원정 ↔ ExpeditionSaveData(맵, 진행도, 보급품, 주운 장신구, 야영 상태).
+    /// 영웅별 상태이상·버프는 SaveMapper, 난수 상태는 GameSession이 담는다. 전투 중 저장은 지원하지 않는다.
     /// 복원이 실패하면 원정만 버리고 마을은 살린다(세이브 전체를 잃지 않게).
     /// </summary>
     public sealed class ExpeditionSaveMapper
@@ -62,6 +63,12 @@ namespace Darkest.Domain.Save
             for (int i = 0; i < expedition.Party.Members.Count; i++) data.PartyIds.Add(expedition.Party.Members[i].Id);
             for (int i = 0; i < expedition.Embarked.Count; i++) data.EmbarkedIds.Add(expedition.Embarked[i].Id);
             CaptureMap(map, data);
+            for (int i = 0; i < inventory.Trinkets.Count; i++) data.FoundTrinkets.Add(inventory.Trinkets[i].Id);
+            if (expedition.ActiveCamp != null)
+            {
+                data.Camp = new CampSaveData { RespiteRemaining = expedition.ActiveCamp.RespiteRemaining };
+                data.Camp.UsedKeys.AddRange(expedition.ActiveCamp.UsedKeys);
+            }
             return data;
         }
 
@@ -90,9 +97,16 @@ namespace Darkest.Domain.Save
 
             var inventory = new Inventory(data.Food, data.Torches, data.Firewood);
             inventory.AddGold(data.Gold);
+            foreach (var id in data.FoundTrinkets)
+            {
+                var trinket = _catalog.FindTrinket(id);
+                if (trinket != null) inventory.AddTrinket(trinket);
+                else _logger.Error(LogCategory, "알 수 없는 장신구 — 전리품에서 생략: " + id);
+            }
 
             var expedition = new Expedition(party, RestoreMap(data), inventory, _rules, _combatRules, _stress, _catalog, _random, _events, _logger);
             expedition.RestoreProgress(embarked, data.CurrentRoomId, data.StepsTaken, data.Light, data.BattlesWon);
+            if (data.Camp != null) expedition.RestoreCamp(data.Camp.RespiteRemaining, data.Camp.UsedKeys);
             return expedition;
         }
 

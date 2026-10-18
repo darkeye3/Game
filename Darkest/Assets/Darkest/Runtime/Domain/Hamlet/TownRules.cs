@@ -14,5 +14,7 @@ namespace Darkest.Domain.Hamlet
         public int FoodPrice { get; set; } = 25;
         public int TorchPrice { get; set; } = 40;
         public int FirewoodPrice { get; set; } = 75;
+
+        public BuildingRules Buildings { get; } = new BuildingRules();
     }
 }

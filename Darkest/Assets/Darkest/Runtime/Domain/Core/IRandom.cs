@@ -33,22 +33,52 @@ namespace Darkest.Domain.Core
         }
     }
 
-    public sealed class SeededRandom : IRandom
+    /// <summary>
+    /// 진행 상태를 저장·복원할 수 있는 난수. 세이브를 불러온 뒤에도 "같은 입력 → 같은 결과"가 이어지게 한다.
+    /// </summary>
+    public interface IRestorableRandom : IRandom
     {
-        private readonly System.Random _random;
+        ulong State { get; }
+        void RestoreState(ulong state);
+    }
+
+    /// <summary>
+    /// SplitMix64 기반 난수. System.Random은 내부 상태를 꺼낼 수 없어 세이브에 담을 수 없으므로 직접 구현한다.
+    /// </summary>
+    public sealed class SeededRandom : IRestorableRandom
+    {
+        private const ulong GoldenGamma = 0x9E3779B97F4A7C15UL;
+        private const ulong MixA = 0xBF58476D1CE4E5B9UL;
+        private const ulong MixB = 0x94D049BB133111EBUL;
 
         public SeededRandom(int seed)
         {
             Seed = seed;
-            _random = new System.Random(seed);
+            State = unchecked((ulong)(uint)seed * GoldenGamma);
         }
 
         public int Seed { get; }
+        public ulong State { get; private set; }
+
+        public void RestoreState(ulong state) => State = state;
 
         public int Range(int minInclusive, int maxExclusive)
         {
             if (maxExclusive <= minInclusive) return minInclusive;
-            return _random.Next(minInclusive, maxExclusive);
+            ulong span = (ulong)((long)maxExclusive - minInclusive);
+            return (int)(minInclusive + (long)(NextUInt64() % span));
+        }
+
+        private ulong NextUInt64()
+        {
+            unchecked
+            {
+                State += GoldenGamma;
+                ulong z = State;
+                z = (z ^ (z >> 30)) * MixA;
+                z = (z ^ (z >> 27)) * MixB;
+                return z ^ (z >> 31);
+            }
         }
     }
 }

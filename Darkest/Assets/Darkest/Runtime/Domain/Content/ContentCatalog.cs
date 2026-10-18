@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using Darkest.Domain.Core;
 using Darkest.Domain.Dungeon;
+using Darkest.Domain.Items;
 using Darkest.Domain.Stress;
 
 namespace Darkest.Domain.Content
@@ -22,6 +23,11 @@ namespace Darkest.Domain.Content
         private readonly List<ResolveDefinition> _afflictions = new List<ResolveDefinition>();
         private readonly List<ResolveDefinition> _virtues = new List<ResolveDefinition>();
         private readonly List<string> _heroNames = new List<string>();
+        private readonly Dictionary<string, TrinketDefinition> _trinkets = new Dictionary<string, TrinketDefinition>();
+        private readonly List<TrinketDefinition> _trinketList = new List<TrinketDefinition>();
+        private readonly Dictionary<string, CampSkillDefinition> _campSkills = new Dictionary<string, CampSkillDefinition>();
+        private readonly Dictionary<string, List<CampSkillDefinition>> _campSkillsByClass = new Dictionary<string, List<CampSkillDefinition>>();
+        private static readonly CampSkillDefinition[] NoCampSkills = new CampSkillDefinition[0];
 
         public ContentCatalog(
             IEnumerable<HeroClassDefinition> heroClasses,
@@ -29,7 +35,9 @@ namespace Darkest.Domain.Content
             IEnumerable<MonsterGroupDefinition> groups,
             IEnumerable<CurioDefinition> curios,
             IEnumerable<ResolveDefinition> resolves,
-            IEnumerable<string> heroNames)
+            IEnumerable<string> heroNames,
+            IEnumerable<TrinketDefinition> trinkets = null,
+            IEnumerable<CampSkillDefinition> campSkills = null)
         {
             foreach (var c in heroClasses) { AddUnique(_heroClasses, c.Id, c); _heroClassList.Add(c); }
             foreach (var m in monsters) AddUnique(_monsters, m.Id, m);
@@ -37,6 +45,8 @@ namespace Darkest.Domain.Content
             foreach (var c in curios) { AddUnique(_curios, c.Id, c); _curioList.Add(c); }
             foreach (var r in resolves) { AddUnique(_resolves, r.Id, r); (r.IsVirtue ? _virtues : _afflictions).Add(r); }
             _heroNames.AddRange(heroNames);
+            if (trinkets != null) foreach (var t in trinkets) { AddUnique(_trinkets, t.Id, t); _trinketList.Add(t); }
+            if (campSkills != null) foreach (var c in campSkills) AddCampSkill(c);
 
             Guard.That(_heroClassList.Count > 0, "영웅 직업이 없습니다.");
             Guard.That(_normalGroups.Count > 0 && _bossGroups.Count > 0, "일반/보스 몬스터 편성이 각각 1개 이상 필요합니다.");
@@ -51,6 +61,7 @@ namespace Darkest.Domain.Content
         public IReadOnlyList<ResolveDefinition> Afflictions => _afflictions;
         public IReadOnlyList<ResolveDefinition> Virtues => _virtues;
         public IReadOnlyList<string> HeroNames => _heroNames;
+        public IReadOnlyList<TrinketDefinition> Trinkets => _trinketList;
 
         public HeroClassDefinition GetHeroClass(string id) => Get(_heroClasses, id, "영웅 직업");
         public MonsterDefinition GetMonster(string id) => Get(_monsters, id, "몬스터");
@@ -61,6 +72,28 @@ namespace Darkest.Domain.Content
         {
             if (string.IsNullOrEmpty(id)) return null;
             return _resolves.TryGetValue(id, out var resolve) ? resolve : null;
+        }
+
+        public TrinketDefinition FindTrinket(string id) =>
+            !string.IsNullOrEmpty(id) && _trinkets.TryGetValue(id, out var trinket) ? trinket : null;
+
+        public IReadOnlyList<CampSkillDefinition> CampSkillsFor(string classId) =>
+            classId != null && _campSkillsByClass.TryGetValue(classId, out var list) ? list : (IReadOnlyList<CampSkillDefinition>)NoCampSkills;
+
+        public CampSkillDefinition FindCampSkill(string id) =>
+            !string.IsNullOrEmpty(id) && _campSkills.TryGetValue(id, out var skill) ? skill : null;
+
+        private void AddCampSkill(CampSkillDefinition skill)
+        {
+            if (!_heroClasses.ContainsKey(skill.ClassId))
+                throw new KeyNotFoundException(skill.Id + " 야영 스킬의 직업이 없습니다: " + skill.ClassId);
+            AddUnique(_campSkills, skill.Id, skill);
+            if (!_campSkillsByClass.TryGetValue(skill.ClassId, out var list))
+            {
+                list = new List<CampSkillDefinition>();
+                _campSkillsByClass.Add(skill.ClassId, list);
+            }
+            list.Add(skill);
         }
 
         private void AddGroup(MonsterGroupDefinition group)

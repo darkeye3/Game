@@ -1,4 +1,6 @@
+using Darkest.Domain.Combat;
 using Darkest.Domain.Core;
+using Darkest.Domain.Items;
 
 namespace Darkest.Domain.Dungeon
 {
@@ -54,5 +56,24 @@ namespace Darkest.Domain.Dungeon
         public ExpeditionPhaseChanged(ExpeditionPhase phase) { Phase = phase; }
         public ExpeditionPhase Phase { get; }
         public override string ToString() => "ExpeditionPhase " + Phase;
+    }
+
+    public sealed class TrinketFound : IDomainEvent
+    {
+        public TrinketFound(TrinketDefinition trinket, string source) { Trinket = trinket; Source = source; }
+        public TrinketDefinition Trinket { get; }
+        public string Source { get; }
+        public override string ToString() => "Trinket " + Trinket.Id + " (" + Source + ")";
+    }
+
+    public sealed class CampSkillUsed : IDomainEvent
+    {
+        public CampSkillUsed(Hero user, CampSkillDefinition skill, Hero target) { User = user; Skill = skill; Target = target; }
+        public Hero User { get; }
+        public CampSkillDefinition Skill { get; }
+
+        /// <summary>파티 전체 대상이면 null.</summary>
+        public Hero Target { get; }
+        public override string ToString() => "CampSkill " + User.DisplayName + " " + Skill.Id + (Target != null ? " -> " + Target.DisplayName : "");
     }
 }

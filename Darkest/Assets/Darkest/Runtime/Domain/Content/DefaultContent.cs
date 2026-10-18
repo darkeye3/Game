@@ -1,6 +1,7 @@
 using Darkest.Domain.Combat.Skills;
 using Darkest.Domain.Combat.Stats;
 using Darkest.Domain.Dungeon;
+using Darkest.Domain.Items;
 using Darkest.Domain.Stress;
 
 namespace Darkest.Domain.Content
@@ -30,7 +31,45 @@ namespace Darkest.Domain.Content
                 new ResolveDefinition("vir_stalwart", "굳건함", true, Mods("vir_stalwart", (StatType.Protection, 15)), 30, -6),
                 new ResolveDefinition("vir_courageous", "용맹", true, Mods("vir_courageous", (StatType.Accuracy, 10), (StatType.CritChance, 5)), 35, -8)
             },
-            new[] { "라이너스", "베아트릭스", "오스왈드", "미렐라", "고드윈", "엘시", "하랄드", "이졸데", "콘라드", "세라" });
+            new[] { "라이너스", "베아트릭스", "오스왈드", "미렐라", "고드윈", "엘시", "하랄드", "이졸데", "콘라드", "세라" },
+            Trinkets(),
+            CampSkills());
+
+        // ── 장신구 (일반: 판매 150G·가중치 3, 희귀: 판매 400G·가중치 1) ──
+
+        public static TrinketDefinition[] Trinkets() => new[]
+        {
+            Trinket("trk_sun_ring", "태양의 반지", TrinketRarity.Common, (StatType.Accuracy, 5)),
+            Trinket("trk_swift_boots", "날렵한 장화", TrinketRarity.Common, (StatType.Speed, 1), (StatType.Dodge, 5)),
+            Trinket("trk_iron_pauldron", "철제 견갑", TrinketRarity.Common, (StatType.Protection, 10), (StatType.Speed, -1)),
+            Trinket("trk_blood_charm", "피의 부적", TrinketRarity.Common, (StatType.DamageMin, 1), (StatType.DamageMax, 2), (StatType.MaxHp, -3)),
+            Trinket("trk_holy_vial", "성수병", TrinketRarity.Common, (StatType.BleedResist, 20), (StatType.BlightResist, 20)),
+            Trinket("trk_hunters_eye", "사냥꾼의 눈", TrinketRarity.Rare, (StatType.CritChance, 5), (StatType.Accuracy, 5)),
+            Trinket("trk_dead_heart", "망자의 심장", TrinketRarity.Rare, (StatType.MaxHp, 6), (StatType.DeathblowResist, 5)),
+            Trinket("trk_mad_mask", "광기의 가면", TrinketRarity.Rare, (StatType.DamageMin, 2), (StatType.DamageMax, 2), (StatType.Dodge, -5))
+        };
+
+        // ── 야영 스킬 (직업당 2개) ──
+
+        public static CampSkillDefinition[] CampSkills() => new[]
+        {
+            new CampSkillDefinition("camp_warden_watch", "경계 근무", "warden", 2, CampSkillTarget.Self,
+                new[] { new CampEffect(CampEffectKind.Buff, 10, StatType.Protection) }),
+            new CampSkillDefinition("camp_warden_rally", "전우의 맹세", "warden", 3, CampSkillTarget.Party,
+                new[] { new CampEffect(CampEffectKind.Stress, -8) }),
+            new CampSkillDefinition("camp_hunter_traps", "덫 손질", "hunter", 2, CampSkillTarget.Self,
+                new[] { new CampEffect(CampEffectKind.Buff, 5, StatType.Accuracy), new CampEffect(CampEffectKind.Buff, 5, StatType.CritChance) }),
+            new CampSkillDefinition("camp_hunter_meal", "사냥감 손질", "hunter", 3, CampSkillTarget.Party,
+                new[] { new CampEffect(CampEffectKind.HealPercent, 15) }),
+            new CampSkillDefinition("camp_alch_firstaid", "응급 처치", "alchemist", 2, CampSkillTarget.Ally,
+                new[] { new CampEffect(CampEffectKind.HealPercent, 35) }),
+            new CampSkillDefinition("camp_alch_sedative", "진정제", "alchemist", 2, CampSkillTarget.Ally,
+                new[] { new CampEffect(CampEffectKind.Stress, -15) }),
+            new CampSkillDefinition("camp_sister_vigil", "기도회", "sister", 3, CampSkillTarget.Party,
+                new[] { new CampEffect(CampEffectKind.Stress, -10) }),
+            new CampSkillDefinition("camp_sister_bless", "축복", "sister", 2, CampSkillTarget.Ally,
+                new[] { new CampEffect(CampEffectKind.Buff, 8, StatType.Dodge), new CampEffect(CampEffectKind.Buff, 1, StatType.Speed) })
+        };
 
         // ── 영웅 ─────────────────────────────────────────────
 
@@ -145,6 +184,19 @@ namespace Darkest.Domain.Content
 
         private static ISkillEffect Effect(SkillEffectKind kind, int amount, int amountMax = 0, int duration = 0, int chance = 100) =>
             SkillEffectFactory.Create(new SkillEffectSpec(kind, amount, amountMax, duration, chance));
+
+        private const int CommonSellValue = 150;
+        private const int RareSellValue = 400;
+        private const int CommonDropWeight = 3;
+        private const int RareDropWeight = 1;
+
+        private static TrinketDefinition Trinket(string id, string name, TrinketRarity rarity, params (StatType stat, int amount)[] values)
+        {
+            var bonuses = new StatBonus[values.Length];
+            for (int i = 0; i < values.Length; i++) bonuses[i] = new StatBonus(values[i].stat, values[i].amount);
+            bool rare = rarity == TrinketRarity.Rare;
+            return new TrinketDefinition(id, name, rarity, bonuses, rare ? RareSellValue : CommonSellValue, rare ? RareDropWeight : CommonDropWeight);
+        }
 
         private static StatModifier[] Mods(string resolveId, params (StatType stat, int amount)[] values)
         {

@@ -55,5 +55,11 @@ namespace Darkest.Domain.Dungeon
         public int CampStressRelief { get; set; } = 20;
         /// <summary>야영 후 빛 수치(장작불이 꺼지며 어두워짐을 표현).</summary>
         public int LightAfterCamp { get; set; } = 50;
+        /// <summary>야영 1회에 쓸 수 있는 야영 스킬 포인트.</summary>
+        public int CampRespitePoints { get; set; } = 6;
+
+        // ── 장신구 전리품 ──
+        public int TreasureTrinketChancePercent { get; set; } = 40;
+        public int BossTrinketDrops { get; set; } = 1;
     }
 }
