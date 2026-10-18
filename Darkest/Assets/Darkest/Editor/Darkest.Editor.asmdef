@@ -1,0 +1,19 @@
+{
+    "name": "Darkest.Editor",
+    "rootNamespace": "Darkest.Editor",
+    "references": [
+        "Darkest.Domain",
+        "Darkest.Unity"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
