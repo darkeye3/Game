@@ -40,6 +40,9 @@ namespace Darkest.Unity.Presentation.Views
 
         public bool IsPlaying => _routine != null;
 
+        /// <summary>비트 하나가 화면에 나타나는 순간. 효과음처럼 연출과 박자를 맞춰야 하는 구독자용.</summary>
+        public event Action<BeatKind> BeatStarted;
+
         public void Initialize(BattleStageView stage, Font font)
         {
             _stage = stage;
@@ -99,6 +102,7 @@ namespace Darkest.Unity.Presentation.Views
                 _text.text = beat.Text;
                 _text.color = beat.Color;
                 _text.gameObject.SetActive(true);
+                BeatStarted?.Invoke(beat.Kind);
 
                 for (float t = 0f; t < BeatDuration; t += Time.deltaTime)
                 {

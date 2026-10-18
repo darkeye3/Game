@@ -12,12 +12,14 @@ namespace Darkest.Unity.Presentation.Presenters
         private readonly DungeonView _view;
         private readonly SaveGateway _saves;
         private readonly StringBuilder _sb = new StringBuilder();
+        private readonly CampSkillPanel _campPanel;
 
         public DungeonPresenter(GameSession session, DungeonView view, SaveGateway saves)
         {
             _session = session;
             _view = view;
             _saves = saves;
+            _campPanel = new CampSkillPanel(session, view, After);
             _view.SaveClicked += OnSave;
             _view.TorchClicked += OnTorch;
             _view.CurioClicked += OnCurio;
@@ -30,6 +32,7 @@ namespace Darkest.Unity.Presentation.Presenters
         public void Enter()
         {
             _view.SetMessage(string.Empty);
+            _campPanel.Reset();
             Render();
         }
 
@@ -42,13 +45,14 @@ namespace Darkest.Unity.Presentation.Presenters
 
             _view.SetHeader("빛 " + expedition.Light.Value + " (" + TextFormat.LightName(expedition.Light.Level) + ")"
                             + "   식량 " + expedition.Inventory.Food + "   횃불 " + expedition.Inventory.Torches + "   장작 " + expedition.Inventory.Firewood
-                            + "\n전리품 " + expedition.Inventory.Gold + "G   이동 " + expedition.StepsTaken + "칸   seed " + expedition.Map.Seed);
+                            + "\n전리품 " + expedition.Inventory.Gold + "G, 장신구 " + expedition.Inventory.Trinkets.Count + "개   이동 " + expedition.StepsTaken + "칸   seed " + expedition.Map.Seed);
             _view.SetMap(DescribeMap(expedition));
             _view.SetParty(TextFormat.Formation(expedition.Party));
 
             var room = expedition.CurrentRoom;
             _view.SetCurioAvailable(room.Type == RoomType.Curio && !room.IsCleared);
-            _view.SetCampAvailable(room.IsCleared && expedition.Inventory.Firewood > 0);
+            _view.SetCampAvailable(room.IsCleared && expedition.Inventory.Firewood > 0 && expedition.ActiveCamp == null);
+            _campPanel.Render(expedition);
 
             _view.Exits.Begin();
             for (int i = 0; i < room.Neighbors.Count; i++)

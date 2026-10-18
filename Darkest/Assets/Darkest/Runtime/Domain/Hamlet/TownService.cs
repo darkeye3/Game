@@ -122,7 +122,7 @@ namespace Darkest.Domain.Hamlet
         {
             Guard.NotNull(expedition, nameof(expedition));
             for (int i = 0; i < expedition.Fallen.Count; i++) _town.RemoveFromRoster(expedition.Fallen[i]);
-            int xp = _progression.ExpeditionXp(expedition) + Buildings.ExpeditionXpBonus;
+            int xp = SettlementXp(expedition);
             for (int i = 0; i < expedition.Embarked.Count; i++)
             {
                 var hero = expedition.Embarked[i];
@@ -142,6 +142,9 @@ namespace Darkest.Domain.Hamlet
             RefreshRecruits();
             _events.Publish(new TownChanged("탐험 정산"));
         }
+
+        /// <summary>귀환 정산 때 생존자 1인당 받을 경험치(원정 결과 + 훈련소 보너스).</summary>
+        public int SettlementXp(Expedition expedition) => _progression.ExpeditionXp(expedition) + Buildings.ExpeditionXpBonus;
 
         private static bool Contains(IReadOnlyList<Hero> heroes, Hero hero)
         {

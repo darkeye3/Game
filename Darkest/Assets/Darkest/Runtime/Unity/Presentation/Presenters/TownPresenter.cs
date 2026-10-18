@@ -20,6 +20,8 @@ namespace Darkest.Unity.Presentation.Presenters
         private readonly Action _newGameRequested;
         private readonly List<Hero> _party = new List<Hero>(Formation.MaxRanks);
         private readonly StringBuilder _sb = new StringBuilder();
+        private readonly HeroTrinketPanel _trinketPanel;
+        private readonly HamletTabPresenter _hamletTab;
         private Hero _selected;
         private Provisions _provisions = DefaultProvisions;
 
@@ -29,7 +31,10 @@ namespace Darkest.Unity.Presentation.Presenters
             _view = view;
             _saves = saves;
             _newGameRequested = newGameRequested;
+            _trinketPanel = new HeroTrinketPanel(session, view.HeroTrinkets, Show);
+            _hamletTab = new HamletTabPresenter(session, view, Render);
 
+            _view.TabClicked += OnTabClicked;
             _view.TreatClicked += OnTreat;
             _view.DismissClicked += OnDismiss;
             _view.EmbarkClicked += OnEmbark;
@@ -48,6 +53,8 @@ namespace Darkest.Unity.Presentation.Presenters
             _party.RemoveAll(h => h.IsDead || _session.Town.FindHero(h.Id) == null);
             if (_selected != null && _session.Town.FindHero(_selected.Id) == null) _selected = null;
             _view.SetMessage(string.Empty);
+            _view.SetHamletMessage(string.Empty);
+            _view.ShowTab(TownTab.Heroes);
             Render();
         }
 
@@ -56,7 +63,7 @@ namespace Darkest.Unity.Presentation.Presenters
         private void Render()
         {
             var town = _session.Town;
-            _view.SetHeader("영지 — " + town.Week + "주차   골드 " + town.Gold);
+            _view.SetHeader("영지 — " + town.Week + "주차   골드 " + town.Gold + "   명부 " + town.Roster.Count + "/" + _session.TownService.Buildings.RosterCapacity);
 
             _view.Roster.Begin();
             for (int i = 0; i < town.Roster.Count; i++)
@@ -73,14 +80,18 @@ namespace Darkest.Unity.Presentation.Presenters
             for (int i = 0; i < town.Recruits.Count; i++)
             {
                 var recruit = town.Recruits[i];
-                _view.Recruits.Add(recruit.DisplayName + " · " + ClassName(recruit) + "  (" + _session.TownService.Rules.RecruitCost + "G)",
+                _view.Recruits.Add(recruit.DisplayName + " · " + ClassName(recruit) + "  (" + _session.TownService.RecruitCost + "G)",
                     () => Show(_session.TownService.TryRecruit(recruit), "모집 완료: " + recruit.DisplayName));
             }
             _view.Recruits.End();
 
             _view.SetDetails(DescribeSelected());
-            _view.SetSupplies("식량 " + _provisions.Food + "  횃불 " + _provisions.Torches + "  장작 " + _provisions.Firewood
-                              + "\n비용 " + _session.TownService.ProvisionCost(_provisions) + "G");
+            var service = _session.TownService;
+            _view.SetSupplies("식량 " + _provisions.Food + "(" + service.FoodPrice + "G)  횃불 " + _provisions.Torches + "(" + service.TorchPrice + "G)"
+                              + "  장작 " + _provisions.Firewood + "(" + service.FirewoodPrice + "G)"
+                              + "\n비용 " + service.ProvisionCost(_provisions) + "G   선술집 " + service.TavernCost + "G");
+            _trinketPanel.Render(_selected);
+            _hamletTab.Render();
         }
 
         private string DescribeSelected()
@@ -113,6 +124,12 @@ namespace Darkest.Unity.Presentation.Presenters
             if (_party.Remove(hero)) { Render(); return; }
             if (_party.Count >= Formation.MaxRanks) _view.SetMessage("파티는 최대 4명입니다.");
             else _party.Add(hero);
+            Render();
+        }
+
+        private void OnTabClicked(TownTab tab)
+        {
+            _view.ShowTab(tab);
             Render();
         }
 
@@ -153,6 +170,7 @@ namespace Darkest.Unity.Presentation.Presenters
 
         public void Dispose()
         {
+            _view.TabClicked -= OnTabClicked;
             _view.TreatClicked -= OnTreat;
             _view.DismissClicked -= OnDismiss;
             _view.EmbarkClicked -= OnEmbark;

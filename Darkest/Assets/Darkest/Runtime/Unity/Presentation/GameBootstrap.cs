@@ -6,6 +6,7 @@ using Darkest.Domain.Save;
 using Darkest.Unity.Data;
 using Darkest.Unity.Debugging;
 using Darkest.Unity.Infrastructure;
+using Darkest.Unity.Presentation.Audio;
 using Darkest.Unity.Presentation.Presenters;
 using UnityEngine;
 
@@ -26,6 +27,10 @@ namespace Darkest.Unity.Presentation
         [SerializeField] private bool useRandomSeed = true;
         [SerializeField] private int fixedSeed = 12345;
 
+        [Header("Sound (Resources/Darkest/Sounds/<SoundId> 파일이 없으면 더미 소리)")]
+        [SerializeField] private bool muteSound;
+        [SerializeField, Range(0f, 1f)] private float soundVolume = 0.6f;
+
         [Header("Debug")]
         [SerializeField] private LogLevel logLevel = LogLevel.Info;
         [SerializeField] private bool loadSaveOnStart = true;
@@ -38,6 +43,8 @@ namespace Darkest.Unity.Presentation
         private ScreenRouter _router;
         private EventLogPresenter _logPresenter;
         private BattleAnimationPresenter _animationPresenter;
+        private ISoundPlayer _sound;
+        private SoundPresenter _soundPresenter;
 
         public GameSession Session { get; private set; }
 
@@ -47,6 +54,8 @@ namespace Darkest.Unity.Presentation
             _scaffold = new SceneScaffold(transform, new PlaceholderSpriteProvider(_logger), _logger);
             _saves = new SaveGateway(new FileSaveRepository(saveFileName, _logger), new LineSaveSerializer(), _logger);
             if (debugView == null) debugView = gameObject.AddComponent<GameDebugView>();
+            _sound = new AudioSourceSoundPlayer(gameObject.AddComponent<AudioSource>(), new ResourcesSoundLibrary(_logger),
+                soundVolume, muteSound, _logger);
 
             StartSession(loadSaveOnStart);
         }
@@ -70,6 +79,7 @@ namespace Darkest.Unity.Presentation
             _scaffold.Log.Clear();
             _logPresenter = new EventLogPresenter(events, _scaffold.Log);
             _animationPresenter = new BattleAnimationPresenter(events, _scaffold.Animations);
+            _soundPresenter = new SoundPresenter(events, _scaffold.Animations, _sound);
             _router = new ScreenRouter(events, _logger);
             _router.Register(_scaffold.Town, new TownPresenter(Session, _scaffold.Town, _saves, OnNewGameRequested));
             _router.Register(_scaffold.Dungeon, new DungeonPresenter(Session, _scaffold.Dungeon, _saves));
@@ -102,6 +112,8 @@ namespace Darkest.Unity.Presentation
             _router?.Dispose();
             _logPresenter?.Dispose();
             _animationPresenter?.Dispose();
+            _soundPresenter?.Dispose();
+            _soundPresenter = null;
             _router = null;
             _logPresenter = null;
             _animationPresenter = null;

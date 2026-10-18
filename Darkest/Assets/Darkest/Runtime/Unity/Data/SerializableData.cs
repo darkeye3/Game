@@ -2,6 +2,7 @@ using System;
 using Darkest.Domain.Combat.Skills;
 using Darkest.Domain.Combat.Stats;
 using Darkest.Domain.Dungeon;
+using Darkest.Domain.Items;
 using UnityEngine;
 
 namespace Darkest.Unity.Data
@@ -59,6 +60,7 @@ namespace Darkest.Unity.Data
         [SerializeField] private int amount;
 
         public StatModifier ToModifier(string sourceId) => new StatModifier(stat, amount, sourceId);
+        public StatBonus ToBonus() => new StatBonus(stat, amount);
 
         internal static StatModifierData Create(StatType stat, int amount) => new StatModifierData { stat = stat, amount = amount };
     }

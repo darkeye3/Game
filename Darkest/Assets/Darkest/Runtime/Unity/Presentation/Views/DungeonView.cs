@@ -5,7 +5,7 @@ using UnityEngine.UI;
 
 namespace Darkest.Unity.Presentation.Views
 {
-    /// <summary>탐험 화면: 지도(텍스트), 이동 가능한 방, 횃불/골동품/후퇴, 파티 상태.</summary>
+    /// <summary>탐험 화면: 지도(텍스트), 이동 가능한 방, 횃불/골동품/야영/후퇴/저장, 파티 상태, 야영 스킬.</summary>
     public sealed class DungeonView : ScreenView
     {
         private Text _header;
@@ -15,6 +15,7 @@ namespace Darkest.Unity.Presentation.Views
         private PooledButtonList _exits;
         private Button _curioButton;
         private Button _campButton;
+        private Text _campTitle;
 
         public event Action TorchClicked;
         public event Action CurioClicked;
@@ -23,6 +24,7 @@ namespace Darkest.Unity.Presentation.Views
         public event Action SaveClicked;
 
         public PooledButtonList Exits => _exits;
+        public PooledButtonList CampSkills { get; private set; }
 
         protected override void BuildContent(RectTransform root)
         {
@@ -42,7 +44,11 @@ namespace Darkest.Unity.Presentation.Views
 
             var right = Column(root, "Party", 0.71f, 0.99f, 0.02f, 0.98f);
             _party = Factory.CreateText(right, "Party", UiTheme.SmallFontSize);
+            _campTitle = Factory.CreateText(right, "CampTitle", UiTheme.SmallFontSize, TextAnchor.MiddleLeft, 30f);
+            CampSkills = new PooledButtonList(Factory, Factory.CreateScrollList(right, "CampSkills"));
         }
+
+        public void SetCampTitle(string text) => _campTitle.text = text;
 
         public void SetHeader(string text) => _header.text = text;
         public void SetMap(string text) => _map.text = text;

@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using Darkest.Domain.Combat.Skills;
 using Darkest.Domain.Content;
 using Darkest.Domain.Dungeon;
+using Darkest.Domain.Items;
 using Darkest.Domain.Stress;
 using UnityEngine;
 
@@ -20,6 +21,10 @@ namespace Darkest.Unity.Data
         [SerializeField] private List<CurioSO> curios = new List<CurioSO>();
         [SerializeField] private List<ResolveSO> resolves = new List<ResolveSO>();
         [SerializeField] private List<string> heroNames = new List<string>();
+        [Tooltip("비우면 코드 기본 장신구(DefaultContent)를 쓴다")]
+        [SerializeField] private List<TrinketSO> trinkets = new List<TrinketSO>();
+        [Tooltip("비우면 코드 기본 야영 스킬(DefaultContent)을 쓴다")]
+        [SerializeField] private List<CampSkillSO> campSkills = new List<CampSkillSO>();
 
         public IContentCatalog BuildCatalog()
         {
@@ -46,7 +51,33 @@ namespace Darkest.Unity.Data
             var resolveDefs = new List<ResolveDefinition>(resolves.Count);
             foreach (var so in NonNull(resolves)) resolveDefs.Add(so.ToDefinition());
 
-            return new ContentCatalog(heroDefs, monsterDefs, groupDefs, curioDefs, resolveDefs, heroNames);
+            return new ContentCatalog(heroDefs, monsterDefs, groupDefs, curioDefs, resolveDefs, heroNames,
+                BuildTrinkets(), BuildCampSkills());
+        }
+
+        // 장신구/야영 스킬은 나중에 추가된 데이터라, 예전 에셋(목록이 빔)에서도 게임이 돌도록 코드 기본값으로 대체한다.
+        private IEnumerable<TrinketDefinition> BuildTrinkets()
+        {
+            if (trinkets.Count == 0)
+            {
+                Debug.LogWarning("[Darkest][Content] " + name + ": 장신구 목록이 비어 기본 장신구를 씁니다.", this);
+                return DefaultContent.Trinkets();
+            }
+            var defs = new List<TrinketDefinition>(trinkets.Count);
+            foreach (var so in NonNull(trinkets)) defs.Add(so.ToDefinition());
+            return defs;
+        }
+
+        private IEnumerable<CampSkillDefinition> BuildCampSkills()
+        {
+            if (campSkills.Count == 0)
+            {
+                Debug.LogWarning("[Darkest][Content] " + name + ": 야영 스킬 목록이 비어 기본 야영 스킬을 씁니다.", this);
+                return DefaultContent.CampSkills();
+            }
+            var defs = new List<CampSkillDefinition>(campSkills.Count);
+            foreach (var so in NonNull(campSkills)) defs.Add(so.ToDefinition());
+            return defs;
         }
 
         private IEnumerable<T> NonNull<T>(List<T> list) where T : Object
@@ -63,10 +94,12 @@ namespace Darkest.Unity.Data
         }
 
         internal void Populate(List<HeroClassSO> newHeroes, List<MonsterSO> newMonsters, List<MonsterGroupSO> newGroups,
-            List<CurioSO> newCurios, List<ResolveSO> newResolves, List<string> newNames)
+            List<CurioSO> newCurios, List<ResolveSO> newResolves, List<string> newNames,
+            List<TrinketSO> newTrinkets, List<CampSkillSO> newCampSkills)
         {
             heroClasses = newHeroes; monsters = newMonsters; monsterGroups = newGroups;
             curios = newCurios; resolves = newResolves; heroNames = newNames;
+            trinkets = newTrinkets; campSkills = newCampSkills;
         }
     }
 }

@@ -31,6 +31,14 @@ namespace Darkest.Unity.Presentation.Presenters
             sb.Append(Title(expedition.Phase)).Append("\n\n");
             sb.Append("전리품: ").Append(expedition.Phase == ExpeditionPhase.Failed ? "잃어버림" : expedition.Inventory.Gold + "G").Append('\n');
             sb.Append("이동 거리: ").Append(expedition.StepsTaken).Append("칸\n");
+            var trinkets = expedition.Inventory.Trinkets;
+            if (trinkets.Count > 0 && expedition.Phase != ExpeditionPhase.Failed)
+            {
+                sb.Append("장신구: ");
+                for (int i = 0; i < trinkets.Count; i++) sb.Append(i > 0 ? ", " : "").Append(trinkets[i].DisplayName);
+                sb.Append('\n');
+            }
+            sb.Append("경험치: 생존자 1인당 +").Append(_session.TownService.SettlementXp(expedition)).Append('\n');
             if (expedition.Fallen.Count > 0)
             {
                 sb.Append("\n전사자\n");

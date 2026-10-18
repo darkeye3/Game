@@ -68,8 +68,27 @@ namespace Darkest.Editor
             var resolves = new List<ResolveSO>();
             foreach (var def in Concat(catalog.Afflictions, catalog.Virtues)) Save(ExportResolve(def), resolves);
 
+            var trinkets = new List<TrinketSO>();
+            foreach (var def in catalog.Trinkets)
+            {
+                var so = LoadOrCreate<TrinketSO>("Trinkets", def.Id);
+                so.Populate(def);
+                Save(so, trinkets);
+            }
+
+            var campSkills = new List<CampSkillSO>();
+            foreach (var heroSo in heroes)
+            {
+                foreach (var def in catalog.CampSkillsFor(heroSo.Id))
+                {
+                    var so = LoadOrCreate<CampSkillSO>("CampSkills", def.Id);
+                    so.Populate(def, heroSo);
+                    Save(so, campSkills);
+                }
+            }
+
             var database = LoadOrCreate<ContentDatabaseSO>(string.Empty, "ContentDatabase");
-            database.Populate(heroes, monsters, groups, curios, resolves, new List<string>(catalog.HeroNames));
+            database.Populate(heroes, monsters, groups, curios, resolves, new List<string>(catalog.HeroNames), trinkets, campSkills);
             EditorUtility.SetDirty(database);
             LoadOrCreate<BalanceConfigSO>(string.Empty, "BalanceConfig");
 

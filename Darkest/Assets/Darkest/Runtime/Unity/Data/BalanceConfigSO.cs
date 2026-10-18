@@ -1,4 +1,4 @@
-using System;
+using Darkest.Domain.Dungeon;
 using Darkest.Domain.Game;
 using UnityEngine;
 
@@ -6,87 +6,13 @@ namespace Darkest.Unity.Data
 {
     /// <summary>
     /// 밸런스 수치 SO. 도메인 기본값(GameConfig)을 인스펙터에서 덮어쓴다.
-    /// 새 규칙을 추가할 때: 도메인 Rules 클래스에 프로퍼티 → 여기 필드 + ApplyTo 한 줄.
+    /// 새 규칙을 추가할 때: 도메인 Rules 클래스에 프로퍼티 → BalanceSections.cs의 해당 섹션에 필드 + ApplyTo 한 줄.
     /// </summary>
     [CreateAssetMenu(menuName = "Darkest/Balance Config", fileName = "BalanceConfig")]
     public sealed class BalanceConfigSO : ScriptableObject
     {
-        [Serializable]
-        private sealed class CombatSection
-        {
-            [SerializeField, Range(0, 100)] internal int minHitChance = 5;
-            [SerializeField, Range(0, 100)] internal int maxHitChance = 95;
-            [SerializeField, Min(100)] internal int critMultiplierPercent = 150;
-            [SerializeField, Range(0, 100)] internal int maxProtection = 80;
-            [SerializeField] internal int stressOnCritReceived = 10;
-            [SerializeField] internal int stressReliefOnHeroCrit = 3;
-            [SerializeField] internal int stressOnDeathsDoor = 15;
-            [SerializeField] internal int stressOnAllyDeath = 20;
-            [SerializeField, Min(1)] internal int initiativeDieSides = 8;
-            [SerializeField, Range(0, 100)] internal int retreatChancePercent = 75;
-            [SerializeField] internal int stressOnRetreat = 10;
-        }
+        private static readonly int LightLevelCount = System.Enum.GetValues(typeof(LightLevel)).Length;
 
-        [Serializable]
-        private sealed class ProgressionSection
-        {
-            [SerializeField, Tooltip("레벨 n에 필요한 누적 경험치. 0으로 시작, 증가해야 함")] internal int[] xpThresholds = { 0, 4, 10, 18, 28, 40 };
-            [SerializeField, Min(0)] internal int xpPerBattleWon = 1;
-            [SerializeField, Min(0)] internal int xpOnExpeditionCompleted = 4;
-            [SerializeField, Min(0)] internal int xpOnExpeditionRetreated = 1;
-            [SerializeField] internal int maxHpPerLevel = 3;
-            [SerializeField] internal int accuracyPerLevel = 2;
-            [SerializeField] internal int damagePerLevel = 1;
-            [SerializeField] internal int dodgePerLevel = 1;
-        }
-
-        [Serializable]
-        private sealed class StressSection
-        {
-            [SerializeField, Min(1)] internal int maxStress = 200;
-            [SerializeField, Min(1)] internal int resolveThreshold = 100;
-            [SerializeField, Range(0, 100)] internal int virtueChance = 25;
-            [SerializeField] internal int stressAfterVirtue = 45;
-            [SerializeField] internal int stressAfterHeartAttack = 170;
-        }
-
-        [Serializable]
-        private sealed class DungeonSection
-        {
-            [SerializeField, Min(1)] internal int mainPathRooms = 5;
-            [SerializeField, Min(0)] internal int branchRooms = 3;
-            [SerializeField, Min(0)] internal int battleWeight = 50;
-            [SerializeField, Min(0)] internal int curioWeight = 25;
-            [SerializeField, Min(0)] internal int treasureWeight = 10;
-            [SerializeField, Min(0)] internal int emptyWeight = 15;
-            [SerializeField, Min(1)] internal int corridorSteps = 3;
-            [SerializeField, Min(0)] internal int lightDecayPerStep = 6;
-            [SerializeField, Min(0)] internal int torchLightRestore = 25;
-            [SerializeField, Min(0)] internal int hungerStepInterval = 8;
-            [SerializeField] internal int hungerStress = 15;
-            [SerializeField] internal int hungerDamage = 3;
-            [SerializeField, Min(0)] internal int campFoodPerHero = 1;
-            [SerializeField, Range(0, 100)] internal int campHealPercent = 35;
-            [SerializeField, Min(0)] internal int campStressRelief = 20;
-            [SerializeField, Tooltip("밝음/흐림/어둑/암흑")] internal int[] monsterAccuracyBonusByLight = { 0, 3, 6, 10 };
-            [SerializeField, Tooltip("밝음/흐림/어둑/암흑")] internal int[] monsterCritBonusByLight = { 0, 1, 3, 5 };
-            [SerializeField, Tooltip("밝음/흐림/어둑/암흑 (%)")] internal int[] lootBonusPercentByLight = { 0, 10, 25, 50 };
-        }
-
-        [Serializable]
-        private sealed class TownSection
-        {
-            [SerializeField, Min(0)] internal int startingGold = 1500;
-            [SerializeField, Range(1, 9)] internal int startingHeroes = 4;
-            [SerializeField, Min(0)] internal int recruitCost = 300;
-            [SerializeField, Min(0)] internal int tavernCost = 250;
-            [SerializeField, Min(0)] internal int tavernStressRelief = 45;
-            [SerializeField, Min(0)] internal int foodPrice = 25;
-            [SerializeField, Min(0)] internal int torchPrice = 40;
-            [SerializeField, Min(0)] internal int firewoodPrice = 75;
-        }
-
-        // 섹션 필드는 internal + [SerializeField]: 인스펙터에는 보이고, 어셈블리 밖에서는 CreateConfig()로만 읽힌다.
         [SerializeField] private CombatSection combat = new CombatSection();
         [SerializeField] private StressSection stress = new StressSection();
         [SerializeField] private DungeonSection dungeon = new DungeonSection();
@@ -96,47 +22,22 @@ namespace Darkest.Unity.Data
         public GameConfig CreateConfig()
         {
             var config = new GameConfig();
-
-            var c = config.Combat;
-            c.MinHitChance = combat.minHitChance; c.MaxHitChance = combat.maxHitChance;
-            c.CritMultiplierPercent = combat.critMultiplierPercent; c.MaxProtection = combat.maxProtection;
-            c.StressOnCritReceived = combat.stressOnCritReceived; c.StressReliefOnHeroCrit = combat.stressReliefOnHeroCrit;
-            c.StressOnDeathsDoor = combat.stressOnDeathsDoor; c.StressOnAllyDeath = combat.stressOnAllyDeath;
-            c.InitiativeDieSides = combat.initiativeDieSides;
-            c.RetreatChancePercent = combat.retreatChancePercent; c.StressOnRetreat = combat.stressOnRetreat;
-
-            var s = config.Stress;
-            s.MaxStress = stress.maxStress; s.ResolveThreshold = stress.resolveThreshold; s.VirtueChance = stress.virtueChance;
-            s.StressAfterVirtue = stress.stressAfterVirtue; s.StressAfterHeartAttack = stress.stressAfterHeartAttack;
-
-            var d = config.Dungeon;
-            d.MainPathRooms = dungeon.mainPathRooms; d.BranchRooms = dungeon.branchRooms;
-            d.BattleWeight = dungeon.battleWeight; d.CurioWeight = dungeon.curioWeight;
-            d.TreasureWeight = dungeon.treasureWeight; d.EmptyWeight = dungeon.emptyWeight;
-
-            var e = config.Expedition;
-            e.CorridorSteps = dungeon.corridorSteps; e.LightDecayPerStep = dungeon.lightDecayPerStep;
-            e.TorchLightRestore = dungeon.torchLightRestore; e.HungerStepInterval = dungeon.hungerStepInterval;
-            e.HungerStress = dungeon.hungerStress; e.HungerDamage = dungeon.hungerDamage;
-            e.CampFoodPerHero = dungeon.campFoodPerHero; e.CampHealPercent = dungeon.campHealPercent;
-            e.CampStressRelief = dungeon.campStressRelief;
-            e.MonsterAccuracyBonusByLight = (int[])dungeon.monsterAccuracyBonusByLight.Clone();
-            e.MonsterCritBonusByLight = (int[])dungeon.monsterCritBonusByLight.Clone();
-            e.LootBonusPercentByLight = (int[])dungeon.lootBonusPercentByLight.Clone();
-
-            var t = config.Town;
-            t.StartingGold = town.startingGold; t.StartingHeroes = town.startingHeroes; t.RecruitCost = town.recruitCost;
-            t.TavernCost = town.tavernCost; t.TavernStressRelief = town.tavernStressRelief;
-            t.FoodPrice = town.foodPrice; t.TorchPrice = town.torchPrice; t.FirewoodPrice = town.firewoodPrice;
-
-            var p = config.Progression;
-            p.XpThresholds = (int[])progression.xpThresholds.Clone();
-            p.XpPerBattleWon = progression.xpPerBattleWon; p.XpOnExpeditionCompleted = progression.xpOnExpeditionCompleted;
-            p.XpOnExpeditionRetreated = progression.xpOnExpeditionRetreated;
-            p.MaxHpPerLevel = progression.maxHpPerLevel; p.AccuracyPerLevel = progression.accuracyPerLevel;
-            p.DamagePerLevel = progression.damagePerLevel; p.DodgePerLevel = progression.dodgePerLevel;
-
+            combat.ApplyTo(config.Combat);
+            stress.ApplyTo(config.Stress);
+            dungeon.ApplyTo(config.Dungeon);
+            dungeon.ApplyTo(config.Expedition);
+            town.ApplyTo(config.Town);
+            progression.ApplyTo(config.Progression);
             return config;
+        }
+
+        private void OnValidate()
+        {
+            // 배열 길이가 틀리면 CreateConfig에서 IndexOutOfRange가 나므로 인스펙터 편집 시점에 바로 알린다.
+            if (dungeon.lightThresholds.Length != LightLevelCount - 1 || dungeon.stressPerStepByLight.Length != LightLevelCount)
+                Debug.LogError("[Darkest][Balance] 빛 단계 배열 길이가 틀렸습니다(경계 " + (LightLevelCount - 1) + "개, 단계별 값 " + LightLevelCount + "개).", this);
+            if (town.buildingUpgradeCosts.Length < town.buildingMaxLevel)
+                Debug.LogError("[Darkest][Balance] 건물 업그레이드 비용 개수가 최대 단계보다 적습니다.", this);
         }
     }
 }

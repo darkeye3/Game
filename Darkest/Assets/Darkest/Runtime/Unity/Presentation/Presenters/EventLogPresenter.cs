@@ -41,7 +41,9 @@ namespace Darkest.Unity.Presentation.Presenters
             On<BattleRetreatAttempted>(events, e => e.Succeeded ? "» 도주 성공 — 마을로 도망친다" : "후퇴 실패! " + e.Actor.DisplayName + "의 차례가 넘어갔다");
             On<LootGained>(events, e => "골드 +" + e.Gold + " (" + e.Source + ")");
             On<CurioResolved>(events, e => e.Curio.DisplayName + ": " + e.Outcome.Description);
-            On<CampMade>(events, e => "야영: 파티 HP +" + e.HealedTotal + ", 스트레스 -" + e.StressRelief + " (장작불이 꺼지며 어두워졌다)");
+            On<TrinketFound>(events, e => "◆ 장신구 획득 (" + e.Source + "): " + ItemTextFormat.Trinket(e.Trinket));
+            On<CampSkillUsed>(events, e => "야영: " + e.User.DisplayName + " ▶ " + e.Skill.DisplayName + (e.Target != null && e.Target != e.User ? " → " + e.Target.DisplayName : ""));
+            On<CampMade>(events, e => "야영: 파티 HP +" + e.HealedTotal + ", 스트레스 -" + e.StressRelief + " (장작불이 꺼지며 어두워졌다). 야영 스킬을 쓸 수 있다");
         }
 
         private void On<T>(IEventBus events, Func<T, string> format) where T : IDomainEvent

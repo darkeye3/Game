@@ -10,6 +10,7 @@ namespace Darkest.Unity.Presentation.Ui
 
         public static readonly Color Background = new Color(0.08f, 0.07f, 0.07f, 0.92f);
         public static readonly Color Panel = new Color(0.15f, 0.13f, 0.12f, 0.95f);
+        public static readonly Color Clear = new Color(0f, 0f, 0f, 0f);
         public static readonly Color Button = new Color(0.32f, 0.24f, 0.18f, 1f);
         public static readonly Color ButtonHighlighted = new Color(0.55f, 0.38f, 0.22f, 1f);
         public static readonly Color ButtonSelected = new Color(0.62f, 0.2f, 0.16f, 1f);
